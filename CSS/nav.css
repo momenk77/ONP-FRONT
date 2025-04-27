@@ -1,0 +1,56 @@
+  /* ========== NAVBAR STYLES ========== */
+  nav {
+    background-color: #1c1c1c;
+    padding: 1rem 2rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  nav ul {
+    list-style: none;
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin: 0;
+    padding: 0;
+    align-items: center;
+  }
+
+  nav ul li {
+    position: relative;
+  }
+
+  nav a {
+    color: #f1f1f1;
+    text-decoration: none;
+    font-size: 1rem;
+    transition: color 0.3s ease;
+  }
+
+  nav a:hover {
+    color: #27ae60;
+  }
+
+  nav ul li ul {
+    display: none;
+    position: absolute;
+    background-color: #2b2b2b;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    top: 100%;
+    left: 0;
+    min-width: 220px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+
+  nav ul li:hover ul {
+    display: block;
+  }
+
+  nav ul li ul li {
+    margin: 0.5rem 0;
+  }
+
+  nav ul li ul a {
+    font-size: 0.95rem;
+    display: block;
+  }

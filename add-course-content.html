@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Course Content - Multiple Lesson Codes</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    body { font-family: 'Segoe UI', sans-serif; background-color: #f9f9f9; padding: 2rem; color: #333; }
+    h1 { text-align: center; margin-bottom: 1rem; }
+    .course-title { text-align: center; font-size: 1.2rem; margin-bottom: 2rem; color: #555; }
+    form { max-width: 600px; margin: auto; background: #fff; padding: 2rem; border-radius: 10px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); }
+    label { display: block; margin: 1rem 0 0.5rem; font-weight: bold; }
+    input, textarea, select { width: 100%; padding: 0.75rem; border: 1px solid #ccc; border-radius: 6px; font-size: 1rem; }
+    button { margin-top: 1.5rem; padding: 0.75rem 1.5rem; background-color: #2563eb; color: white; border: none; border-radius: 6px; font-size: 1rem; cursor: pointer; }
+    .content-list { margin-top: 3rem; max-width: 800px; margin-left: auto; margin-right: auto; }
+    .content-item { background: #fff; padding: 1rem; border-left: 4px solid #2563eb; margin-bottom: 1rem; border-radius: 8px; position: relative; }
+    .content-actions { position: absolute; top: 1rem; right: 1rem; }
+    .content-actions button { margin-left: 0.5rem; background-color: #e74c3c; padding: 0.4rem 0.8rem; font-size: 0.9rem; border: none; border-radius: 4px; cursor: pointer; color: #fff; }
+    .content-actions button.edit { background-color: #3498db; }
+    .lesson-code-group {
+    position: relative;
+    margin-top: 1.5rem;
+    padding: 1.5rem;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    background-color: #fefefe;
+    box-shadow: 0 0 5px rgba(0,0,0,0.05);
+    padding-top: 2.5rem;
+  }    
+   .remove-code-btn {
+    position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 8px;
+  background-color: #ef4444;
+  color: white;
+  font-size: 1.2rem;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.3s ease;
+  }
+  .lesson-code-group label {
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+    display: block;
+  }
+
+  .lesson-code-group input,
+  .lesson-code-group textarea {
+    width: 100%;
+    margin-bottom: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    padding: 0.7rem;
+    font-size: 1rem;
+  }
+
+  </style>
+</head>
+
+<body>
+  <h1>Manage Course Content</h1>
+  <div class="course-title" id="course-title"></div>
+
+  <form id="content-form">
+    <input type="hidden" id="content-id" />
+    <label for="title">Lesson Title</label>
+    <input type="text" id="title" required />
+
+    <label for="order">Order</label>
+    <input type="number" id="order" required />
+
+    <label for="video-url">Video URL</label>
+    <input type="text" id="video-url" />
+
+    <label for="text">Text Content</label>
+    <textarea id="text" rows="4"></textarea>
+
+    <h3>Lesson Codes</h3>
+    <div id="lesson-codes-container"></div>
+    <button type="button" onclick="addLessonCode()">Add Another Code</button>
+
+    <button type="submit">Save Content</button>
+  </form>
+
+  <div class="content-list" id="content-list"></div>
+  <script>
+    const params = new URLSearchParams(location.search);
+    const courseId = params.get("id");
+    const token = localStorage.getItem("token");
+    const headers = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
+    
+    fetch(`http://mazingad-001-site1.ntempurl.com/api/Course/${courseId}/preview`)
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById("course-title").textContent = `Course: ${data.title}`;
+      });
+    
+    function loadContents() {
+      fetch(`http://mazingad-001-site1.ntempurl.com/api/courses/${courseId}/content`, { headers })
+        .then(res => res.json())
+        .then(data => {
+          const list = document.getElementById("content-list");
+          list.innerHTML = "<h2>Course Content</h2>" + data.map(item => `
+            <div class="content-item" data-id="${item.id}" data-title="${item.title}" data-order="${item.order}" data-video="${item.videoUrl || ''}" data-text="${item.textContent || ''}" data-lessonCodes='${JSON.stringify(item.lessonCodes || [])}'>
+              <div class="content-actions">
+                <button class="edit" onclick="editContent(${item.id})">Edit</button>
+                <button onclick="deleteContent(${item.id})">Delete</button>
+              </div>
+              <strong>${item.order}. ${item.title}</strong><br>
+              Type: ${item.contentType}<br>
+              ${item.videoUrl ? 'Video: ' + item.videoUrl + '<br>' : ''}
+              ${item.textContent ? 'Text: ' + item.textContent + '<br>' : ''}
+            </div>
+          `).join('');
+        });
+    }
+    
+    function addLessonCode(language = '', code = '') {
+      const container = document.getElementById("lesson-codes-container");
+      const group = document.createElement("div");
+      group.className = "lesson-code-group";
+      group.innerHTML = `
+        <button type="button" class="remove-code-btn" onclick="this.parentElement.remove()">&times;</button>
+        <label>Language</label>
+        <input type="text" class="lesson-language" value="${language}">
+        <label>Code</label>
+        <textarea class="lesson-code" rows="3">${code}</textarea>
+      `;
+      container.appendChild(group);
+    }
+    
+    function editContent(id) {
+      const item = document.querySelector(`.content-item[data-id='${id}']`);
+      document.getElementById("content-id").value = id;
+      document.getElementById("title").value = item.dataset.title;
+      document.getElementById("order").value = item.dataset.order;
+      document.getElementById("video-url").value = item.dataset.video;
+      document.getElementById("text").value = item.dataset.text;
+      
+      const lessonCodes = JSON.parse(item.dataset.lessonCodes || '[]');
+      const container = document.getElementById("lesson-codes-container");
+      container.innerHTML = "";
+      lessonCodes.forEach(code => addLessonCode(code.language, code.code));
+    }
+    
+
+    function deleteContent(id) {
+      Swal.fire({
+        title: 'Are you sure?',
+        text: "You won't be able to revert this!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, delete it!'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          fetch(`http://mazingad-001-site1.ntempurl.com/api/courses/${courseId}/content/${id}`, {
+            method: "DELETE",
+            headers
+          })
+          .then(async res => {
+            if (!res.ok) {
+              let errorMessage = 'Failed to delete content.';
+              const contentType = res.headers.get("content-type");
+              if (contentType && contentType.includes("application/json")) {
+                const errorData = await res.json();
+                if (errorData.errors) {
+                  let parsedErrors = errorData.errors;
+                  if (typeof parsedErrors === "string") {
+                    parsedErrors = JSON.parse(parsedErrors);
+                  }
+                  const messages = Object.values(parsedErrors).flat();
+                  errorMessage = `<ul style="text-align:left;">${messages.map(m => `<li>${m}</li>`).join('')}</ul>`;
+                } else {
+                  errorMessage = errorData.title || errorMessage;
+                }
+              } else {
+                const errorText = await res.text();
+                errorMessage = errorText || errorMessage;
+              }
+              throw new Error(errorMessage);
+            }
+            Swal.fire('Deleted!', 'Content deleted successfully.', 'success');
+            loadContents();
+          })
+          .catch(err => {
+            Swal.fire({ icon: 'error', title: 'Error!', html: err.message });
+          });
+        }
+      });
+    }
+
+    loadContents();
+
+    document.getElementById("content-form").addEventListener("submit", async e => {
+  e.preventDefault();
+  
+  const contentId = document.getElementById("content-id").value;
+  
+  const lessonCodes = Array.from(document.querySelectorAll(".lesson-code-group")).map(group => ({
+    language: group.querySelector(".lesson-language").value,
+    code: group.querySelector(".lesson-code").value
+  }));
+
+  const payload = {
+    title: document.getElementById("title").value,
+    order: +document.getElementById("order").value,
+    contentType: "mixed",
+    videoUrl: document.getElementById("video-url").value || null,
+    textContent: document.getElementById("text").value || null,
+    lessonCodes
+  };
+
+  const url = contentId
+    ? `http://mazingad-001-site1.ntempurl.com/api/courses/${courseId}/content/${contentId}`
+    : `http://mazingad-001-site1.ntempurl.com/api/courses/${courseId}/content`;
+
+  try {
+    const res = await fetch(url, {
+      method: contentId ? "PUT" : "POST",
+      headers,
+      body: JSON.stringify(payload)
+    });
+
+    if (!res.ok) {
+      let errorMessage = 'Failed to save content.';
+      const contentType = res.headers.get("content-type");
+
+      if (contentType && contentType.includes("application/json")) {
+        const errorData = await res.json();
+        if (errorData.errors) {
+          let parsedErrors = errorData.errors;
+          if (typeof parsedErrors === "string") {
+            parsedErrors = JSON.parse(parsedErrors);
+          }
+          const messages = Object.values(parsedErrors).flat();
+          errorMessage = `<ul style="text-align:left;">${messages.map(m => `<li>${m}</li>`).join('')}</ul>`;
+        } else {
+          errorMessage = errorData.title || errorMessage;
+        }
+      } else {
+        const errorText = await res.text();
+        errorMessage = errorText || errorMessage;
+      }
+
+      throw new Error(errorMessage);
+    }
+
+    await Swal.fire('Success!', 'Content saved successfully.', 'success');
+    document.getElementById("content-form").reset();
+    document.getElementById("lesson-codes-container").innerHTML = "";
+    document.getElementById("content-id").value = "";
+    loadContents();
+
+  } catch (err) {
+    Swal.fire({ icon: 'error', title: 'Error!', html: err.message });
+  }
+});
+
+  </script>
+</body>
+
+</html>

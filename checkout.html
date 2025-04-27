@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Checkout - ONP</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f4f6f9;
+      padding: 0;
+      margin: 0;
+    }
+
+    .checkout-container {
+      max-width: 800px;
+      margin: 2rem auto;
+      padding: 2rem;
+      background-color: #fff;
+      border-radius: 10px;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 2rem;
+      color: #2c3e50;
+    }
+
+    .course-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .course-list li {
+      padding: 1rem;
+      margin-bottom: 1rem;
+      border-left: 4px solid #27ae60;
+      background-color: #f9f9f9;
+      border-radius: 8px;
+    }
+
+    .total {
+      margin-top: 1rem;
+      text-align: right;
+      font-weight: bold;
+      font-size: 1.1rem;
+      color: #2c3e50;
+    }
+
+    .stripe-preview {
+      text-align: center;
+      margin: 2rem 0;
+    }
+
+    .stripe-preview img {
+      width: 120px;
+      margin-bottom: 1rem;
+    }
+
+    .fake-card-form {
+      max-width: 400px;
+      margin: auto;
+    }
+
+    .fake-card-form input {
+      width: 100%;
+      padding: 0.8rem;
+      margin: 0.5rem 0;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
+    .checkout-btn {
+      display: block;
+      width: 100%;
+      margin-top: 1rem;
+      padding: 1rem;
+      background-color: #27ae60;
+      color: white;
+      border: none;
+      font-size: 1.2rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .checkout-btn:hover {
+      background-color: #1e874b;
+    }
+
+    .warning {
+      text-align: center;
+      color: #e74c3c;
+      font-weight: bold;
+      font-size: 1.2rem;
+    }
+
+    .loader-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(255, 255, 255, 0.8);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.loader {
+  border: 6px solid #f3f3f3;
+  border-top: 6px solid #27ae60;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.course-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.course-item img {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #27ae60;
+}
+
+.course-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  font-size: 1rem;
+}
+
+
+  </style>
+</head>
+<body>
+
+  <div class="checkout-container" id="checkout-container">
+    <h2><i class="fas fa-credit-card"></i> Confirm Your Purchase</h2>
+    <ul class="course-list" id="course-list"></ul>
+    <div class="total" id="total-price"></div>
+
+    <div class="stripe-preview">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Stripe_Logo%2C_revised_2016.svg/1280px-Stripe_Logo%2C_revised_2016.svg.png" alt="Stripe" />
+      <div class="fake-card-form">
+        <input type="text" placeholder="Card Number" id="card-number" />
+        <input type="text" placeholder="MM/YY" id="expiry" />
+        <input type="text" placeholder="CVV" id="cvv" />
+        <input type="text" placeholder="Cardholder Name" id="name" />
+        <button class="checkout-btn" onclick="completeFakePayment()">Pay Now</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="loader-overlay" id="loader-overlay">
+    <div class="loader"></div>
+  </div>
+  
+
+  <script>
+    const Toast = Swal.mixin({
+    toast: true,
+    position: 'top-end',
+    showConfirmButton: false,
+    timer: 2000,
+    timerProgressBar: true
+  });
+
+    const params = new URLSearchParams(window.location.search);
+    const courseIdFromURL = params.get("id");
+    const token = localStorage.getItem("token");
+    const courseList = document.getElementById("course-list");
+    const totalPriceDiv = document.getElementById("total-price");
+    const container = document.getElementById("checkout-container");
+
+    let courseIds = [];
+    let total = 0;
+
+    async function checkEnrollment(courseId) {
+      const res = await fetch("http://mazingad-001-site1.ntempurl.com/api/Enrollment/my-courses", {
+        headers: { "Authorization": "Bearer " + token }
+      });
+      if (!res.ok) return false;
+
+      const enrolled = await res.json();
+      return enrolled.some(c => c.courseId === courseId);
+    }
+
+    async function initCheckout() {
+      if (courseIdFromURL) {
+        const courseId = parseInt(courseIdFromURL);
+        const alreadyEnrolled = await checkEnrollment(courseId);
+
+        if (alreadyEnrolled) {
+          container.innerHTML = `<p class="warning">⚠️ You are already enrolled in this course. You cannot purchase it again.</p>`;
+          return;
+        }
+
+        courseIds = [courseId];
+      } else {
+        const cart = JSON.parse(localStorage.getItem("cart")) || [];
+        courseIds = cart.map(c => c.id);
+      }
+
+      const courses = await Promise.all(courseIds.map(id =>
+        fetch(`http://mazingad-001-site1.ntempurl.com/api/Course/${id}/public-view`).then(res => res.json())
+      ));
+
+      courses.forEach(course => {
+        total += course.price;
+        const li = document.createElement("li");
+        li.innerHTML = `
+        <div class="course-item">
+          <img src="${course.imageUrl || 'images/html.webp'}" alt="Course Image">
+          <div class="course-info">
+            <strong>${course.title}</strong>
+            <div>${course.price} EGP</div>
+          </div>
+        </div>
+      `;
+      courseList.appendChild(li);
+
+      });
+
+      totalPriceDiv.textContent = `Total: ${total} EGP`;
+    }
+
+    function completeFakePayment() {
+  const cardNumber = document.getElementById("card-number").value.trim();
+  const expiry = document.getElementById("expiry").value.trim();
+  const cvv = document.getElementById("cvv").value.trim();
+  const name = document.getElementById("name").value.trim();
+  const loader = document.getElementById("loader-overlay");
+
+  if (!cardNumber || !expiry || !cvv || !name) {
+    Toast.fire({
+      icon: 'warning',
+      title: 'Please fill in all payment fields.'
+    });
+        return;
+  }
+
+  // Show loader
+  loader.style.display = "flex";
+
+  // Simulate payment
+  setTimeout(() => {
+    loader.style.display = "none";
+    Swal.fire({
+      icon: 'success',
+      title: 'Payment Successful!',
+      text: 'Thank you for your purchase 🎉',
+      confirmButtonColor: '#27ae60'
+    }).then(() => {
+      processRealPurchase();
+    });
+  }, 1500);
+}
+
+
+    function processRealPurchase() {
+      fetch("http://mazingad-001-site1.ntempurl.com/api/Course/checkout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + token
+        },
+        body: JSON.stringify(courseIds)
+      })
+      .then(res => {
+        if (!res.ok) throw new Error("Purchase failed");
+        return res.json();
+      })
+      .then(() => {
+        localStorage.removeItem("cart");
+        window.location.href = "student-profile.html";
+      })
+      .catch(err => {
+        console.error(err);
+        Swal.fire({
+        icon: 'error',
+        title: 'Purchase Failed',
+        text: 'Something went wrong during the transaction.',
+        confirmButtonColor: '#e74c3c'
+      });
+      });
+    }
+
+    initCheckout();
+  </script>
+</body>
+</html>

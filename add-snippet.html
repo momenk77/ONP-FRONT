@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Add Snippet</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f4f6f9;
+      margin: 0;
+      padding: 2rem;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    form {
+      max-width: 600px;
+      margin: auto;
+      background: #fff;
+      padding: 2rem;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    label {
+      display: block;
+      margin-top: 1rem;
+      font-weight: bold;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 0.75rem;
+      margin-top: 0.5rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 1rem;
+    }
+    button {
+      margin-top: 2rem;
+      padding: 0.75rem 1.5rem;
+      background-color: #3498db;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>Add New Snippet</h1>
+  <form id="snippet-form">
+    <label for="title">Title</label>
+    <input type="text" id="title" required />
+
+    <label for="description">Description</label>
+    <textarea id="description" rows="3"></textarea>
+
+    <label for="language">Programming Language</label>
+    <input type="text" id="language" required />
+
+    <label for="code">Code</label>
+    <textarea id="code" rows="8" required></textarea>
+
+    <button type="submit">Submit Snippet</button>
+  </form>
+
+  <script>
+ document.getElementById("snippet-form").addEventListener("submit", function(e) {
+    e.preventDefault();
+
+    const token = localStorage.getItem("token");
+    const headers = {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    };
+
+    const snippet = {
+      title: document.getElementById("title").value,
+      description: document.getElementById("description").value,
+      language: document.getElementById("language").value,
+      code: document.getElementById("code").value
+    };
+
+    fetch("http://mazingad-001-site1.ntempurl.com/api/Snippet", {
+      method: "POST",
+      headers,
+      body: JSON.stringify(snippet)
+    })
+    .then(async res => {
+      if (!res.ok) {
+        let errorMessage = 'Failed to add snippet.';
+        const contentType = res.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+          const errorData = await res.json();
+          if (errorData.errors) {
+            const messages = Object.values(errorData.errors).flat();
+            errorMessage = messages.join('<br>');
+          } else {
+            errorMessage = errorData.title || errorMessage;
+          }
+        } else {
+          const errorText = await res.text();
+          errorMessage = errorText || errorMessage;
+        }
+        throw new Error(errorMessage);
+      }
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Success!',
+        text: 'Snippet added successfully!',
+      }).then(() => {
+        window.location.href = "Manage-snippets-page.html";
+      });
+    })
+    .catch(err => {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error!',
+        html: err.message
+      });
+    });
+  });
+  </script>
+</body>
+</html>

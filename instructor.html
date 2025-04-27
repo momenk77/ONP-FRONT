@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Instructor Dashboard</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f4f6f9;
+      color: #1f2937;
+      display: flex;
+      overflow-x: hidden;
+
+    }
+
+    aside {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 250px;
+  background-color: #1f2937;
+  color: white;
+  height: 100vh;
+  padding: 2rem 1rem;
+  overflow-y: auto;
+}
+
+    aside h2 {
+      font-size: 1.2rem;
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+
+    aside ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    aside ul li {
+      margin: 1rem 0;
+    }
+
+    aside ul li a {
+      color: white;
+      text-decoration: none;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    aside ul li a:hover {
+      text-decoration: underline;
+    }
+
+    main {
+  margin-left: 250px;
+  padding: 2rem;
+  flex: 1;
+}
+
+
+    .dashboard-header {
+      font-size: 1.5rem;
+      font-weight: bold;
+      margin-bottom: 2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .dashboard-card {
+      background-color: #ffffff;
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      margin-bottom: 1.5rem;
+    }
+
+    .dashboard-card h3 {
+      margin-bottom: 1rem;
+    }
+
+    .dashboard-card ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .dashboard-card ul li {
+      background-color: #f1f5f9;
+      margin-bottom: 0.5rem;
+      padding: 0.75rem 1rem;
+      border-radius: 6px;
+    }
+
+    .course-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.course-card {
+  background-color: #f9fafb;
+  padding: 1rem;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  transition: transform 0.2s ease;
+}
+
+.course-card:hover {
+  transform: translateY(-4px);
+}
+
+.course-card h4 {
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+}
+
+.course-card p {
+  margin: 0.25rem 0;
+  font-size: 0.95rem;
+  color: #4b5563;
+}
+
+  </style>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+
+</head>
+<body>
+
+
+  <aside>
+    <h2><i class="fas fa-user-cog"></i> Instructor Panel</h2>
+    <ul>
+      <li><a href="#" onclick="showSection('dashboard')"><i class="fas fa-chart-line"></i> Dashboard</a></li>
+      <li><a href="manage-courses-dashboard.html" target="_blank"><i class="fas fa-chalkboard-teacher"></i> Manage Your Courses</a></li>
+      <li><a href="#" onclick="showSection('profile')"><i class="fas fa-user-edit"></i> Edit Profile</a></li>
+      <li><a href="index.html"><i class="fas fa-home"></i> Back To Home</a></li>
+    </ul>
+  </aside>
+
+  <main>
+    <div class="dashboard-header"><i class="fas fa-chalkboard-teacher"></i> Instructor Dashboard</div>
+
+    <div id="dashboard" class="dashboard-section">
+      <div class="dashboard-card" style="text-align: center;">
+        <h3><i class="fas fa-money-bill-wave"></i> Total Earnings</h3>
+        <p id="total-earnings" style="font-size: 2rem; font-weight: bold; color: #16a34a; margin-top: 1rem;">$0.00</p>
+      </div>
+      <div class="dashboard-card" style="text-align: center;">
+        <h3><i class="fab fa-paypal"></i> Withdraw Earnings</h3>
+        <input type="email" id="paypalEmail" placeholder="PayPal Email" style="width: 80%; padding: 0.6rem; margin-bottom: 1rem; border-radius: 6px; border: 1px solid #ccc;" />
+        <input type="number" id="withdrawAmount" placeholder="Amount to Withdraw" style="width: 80%; padding: 0.6rem; margin-bottom: 1rem; border-radius: 6px; border: 1px solid #ccc;" />
+        <button onclick="fakeWithdraw()" style="padding: 0.75rem 2rem; background-color: #0070ba; color: white; border: none; border-radius: 6px; cursor: pointer;">Withdraw via PayPal</button>
+      </div>
+      
+      <div class="dashboard-card">
+        
+        <h3><i class="fas fa-history"></i> Withdrawal History</h3>
+        <button onclick="downloadWithdrawalHistoryAsExcel()" style="margin-top: 1rem; padding: 0.5rem 1.5rem; background-color: #2563eb; color: white; border: none; border-radius: 6px; cursor: pointer;">
+          <i class="fas fa-file-excel"></i> Download Excel
+        </button>
+        
+
+        <ul id="withdrawal-history"></ul>
+        
+      </div>
+
+      
+      
+
+      <div class="dashboard-card">
+        <h3><i class="fas fa-book"></i> Your Courses</h3>
+        <div id="course-list" class="course-grid"></div>
+      </div>
+    </div>
+
+    <div id="profile" class="dashboard-section" style="display: none;">
+      <div class="dashboard-card">
+        <h3><i class="fas fa-user-edit"></i> Update Profile</h3>
+        <form id="update-form">
+          <input type="text" id="fullName" placeholder="Full Name" required style="width:100%; padding:0.75rem; margin-bottom:1rem;"/>
+          <input type="email" id="email" placeholder="Email" required style="width:100%; padding:0.75rem; margin-bottom:1rem;"/>
+          <input type="password" id="Oldpassword" placeholder="Current Password" style="width:100%; padding:0.75rem; margin-bottom:1rem;"/>
+          <input type="password" id="password" placeholder="New Password" style="width:100%; padding:0.75rem; margin-bottom:1rem;"/>
+          <div style="margin-bottom: 1rem;">
+            <label style="display:block; margin-bottom: 0.5rem;">Profile Image:</label>
+            <input type="file" id="profileImage" accept="image/*" />
+          </div>
+          <button type="submit" style="padding:0.75rem 1.5rem; background-color:#2563eb; color:white; border:none; border-radius:6px; cursor:pointer">Save Changes</button>
+        </form>
+      </div>
+    </div>
+
+  </main>
+
+  <div id="loader-overlay" style="display: none; position: fixed; inset: 0; background: rgba(255,255,255,0.8); align-items: center; justify-content: center; z-index: 9999;">
+    <div style="border: 6px solid #f3f3f3; border-top: 6px solid #0070ba; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite;"></div>
+  </div>
+  
+  <style>
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+  </body>
+
+  <script>
+    const token = localStorage.getItem("token");
+    const headers = {
+      "Authorization": `Bearer ${token}`,
+      "Content-Type": "application/json"
+    };
+  
+    function showSection(section) {
+      document.querySelectorAll('.dashboard-section').forEach(div => div.style.display = 'none');
+      document.getElementById(section).style.display = 'block';
+    }
+  
+    // ✅ دالة تحميل سجل السحب - برا عشان تكون متاحة في كل السكريبت
+    async function loadWithdrawalHistory() {
+      const res = await fetch("http://mazingad-001-site1.ntempurl.com/api/Instructor/withdrawals", { headers });
+      const withdrawals = await res.json();
+  
+      const list = document.getElementById("withdrawal-history");
+      list.innerHTML = withdrawals.length > 0 ? "" : "<li>No withdrawals yet.</li>";
+  
+      withdrawals.forEach(w => {
+        const item = document.createElement("li");
+        item.innerHTML = `
+          <strong>$${w.amount.toFixed(2)}</strong> to ${w.payPalEmail} 
+          <br><small>${new Date(w.withdrawnAt).toLocaleString()}</small>
+        `;
+        list.appendChild(item);
+      });
+    }
+  
+    // ✅ تحميل بيانات الداشبورد
+    fetch("http://mazingad-001-site1.ntempurl.com/api/Instructor/dashboard", { headers })
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById("total-earnings").textContent = `$${data.totalEarnings.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
+        document.getElementById("fullName").value = data.fullName;
+        document.getElementById("email").value = data.email;
+  
+        const list = document.getElementById("course-list");
+        list.innerHTML = "";
+  
+        data.courses.forEach(course => {
+          const div = document.createElement("div");
+          div.className = "course-card";
+          div.innerHTML = `
+            <h4>${course.title}</h4>
+            <p><strong>Students:</strong> ${course.studentCount}</p>
+            <p><strong>Rating:</strong> ${course.averageRating} ⭐</p>
+            <p><strong>Revenue:</strong> $${course.totalRevenue.toFixed(2)}</p>
+          `;
+          list.appendChild(div);
+        });
+  
+        // ✅ استدعاء سجل السحب بعد تحميل الداشبورد
+        loadWithdrawalHistory();
+      });
+  
+    // ✅ تحديث البروفايل
+    document.getElementById("update-form").addEventListener("submit", async e => {
+  e.preventDefault();
+
+  const fullName = document.getElementById("fullName").value.trim();
+  const currentPassword = document.getElementById("Oldpassword").value.trim();
+  const newPassword = document.getElementById("password").value.trim();
+  const profileImage = document.getElementById("profileImage").files[0];
+  const loader = document.getElementById("loader-overlay");
+
+  const payload = { fullName };
+
+  if (currentPassword || newPassword) {
+    if (!currentPassword || !newPassword) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Incomplete Password Fields',
+        text: 'Please fill both Current Password and New Password to update password.',
+      });
+      return;
+    }
+    payload.currentPassword = currentPassword;
+    payload.newPassword = newPassword;
+  }
+
+  loader.style.display = "flex"; // Show loader
+
+  try {
+    if (profileImage) {
+      const formData = new FormData();
+      formData.append("file", profileImage);
+
+      const uploadRes = await fetch("http://mazingad-001-site1.ntempurl.com/api/Instructor/upload-profile-image", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData
+      });
+
+      if (!uploadRes.ok) {
+        loader.style.display = "none";
+        Swal.fire({
+          icon: 'error',
+          title: 'Image Upload Failed',
+          text: 'Please try again.',
+        });
+        return;
+      }
+    }
+
+    const res = await fetch("http://mazingad-001-site1.ntempurl.com/api/Instructor/profile", {
+      method: "PUT",
+      headers,
+      body: JSON.stringify(payload)
+    });
+
+    loader.style.display = "none"; // Hide loader
+
+    if (res.ok) {
+      Swal.fire({
+        icon: 'success',
+        title: 'Profile Updated Successfully!',
+        showConfirmButton: false,
+        timer: 2000
+      });
+      document.getElementById("Oldpassword").value = "";
+      document.getElementById("password").value = "";
+    } else {
+      const err = await res.json().catch(() => ({ message: "Something went wrong." }));
+      Swal.fire({
+        icon: 'error',
+        title: 'Update Failed',
+        text: err.message || "Update failed.",
+      });
+    }
+
+  } catch (error) {
+    loader.style.display = "none";
+    Swal.fire({
+      icon: 'error',
+      title: 'Unexpected Error',
+      text: 'Please try again.',
+    });
+  }
+});
+
+
+  
+    // ✅ عملية السحب
+    async function fakeWithdraw() {
+  const email = document.getElementById("paypalEmail").value.trim();
+  const amount = parseFloat(document.getElementById("withdrawAmount").value);
+  const loader = document.getElementById("loader-overlay");
+
+  if (!email || isNaN(amount) || amount <= 0) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Invalid Input',
+      text: 'Please enter a valid PayPal email and amount.',
+    });
+    return;
+  }
+
+  loader.style.display = "flex";
+
+  try {
+    const res = await fetch("http://mazingad-001-site1.ntempurl.com/api/Instructor/withdraw", {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ amount, payPalEmail: email })
+    });
+
+    loader.style.display = "none";
+
+    if (res.ok) {
+      const data = await res.json();
+      Swal.fire({
+        icon: 'success',
+        title: 'Withdrawal Successful!',
+        text: data.message,
+        showConfirmButton: false,
+        timer: 2000
+      });
+      document.getElementById("total-earnings").textContent = `$${data.remainingBalance.toFixed(2)}`;
+      document.getElementById("paypalEmail").value = "";
+      document.getElementById("withdrawAmount").value = "";
+
+      await loadWithdrawalHistory(); // إعادة تحميل السجل
+
+    } else {
+      const err = await res.json().catch(() => ({ message: "Something went wrong." }));
+      Swal.fire({
+        icon: 'error',
+        title: 'Withdrawal Failed',
+        text: err.message || "Withdrawal failed.",
+      });
+    }
+  } catch (error) {
+    loader.style.display = "none";
+    Swal.fire({
+      icon: 'error',
+      title: 'Unexpected Error',
+      text: 'Please try again later.',
+    });
+  }
+}
+
+
+    async function downloadWithdrawalHistoryAsExcel() {
+  const res = await fetch("http://mazingad-001-site1.ntempurl.com/api/Instructor/withdrawals", { headers });
+  const withdrawals = await res.json();
+
+  const worksheetData = withdrawals.map((w, index) => ({
+    "#": index + 1,
+    "Amount": `$${w.amount.toFixed(2)}`,
+    "PayPal Email": w.payPalEmail,
+    "Date": new Date(w.withdrawnAt).toLocaleString()
+  }));
+
+  const worksheet = XLSX.utils.json_to_sheet(worksheetData);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Withdrawals");
+
+  XLSX.writeFile(workbook, "withdrawal-history.xlsx");
+}
+
+  </script>
+  
+
+</html>

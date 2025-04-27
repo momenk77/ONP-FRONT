@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edit Snippet</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f4f6f9;
+      padding: 2rem;
+    }
+    form {
+      max-width: 600px;
+      margin: auto;
+      background: white;
+      padding: 2rem;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+    label {
+      display: block;
+      margin-top: 1rem;
+      font-weight: bold;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 0.75rem;
+      margin-top: 0.3rem;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 1rem;
+    }
+    button {
+      margin-top: 1.5rem;
+      width: 100%;
+      padding: 0.75rem;
+      background-color: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #1d4ed8;
+    }
+  </style>
+</head>
+<body>
+  <form id="edit-snippet-form">
+    <h2>Edit Snippet</h2>
+    <label for="title">Title</label>
+    <input type="text" id="title" required>
+
+    <label for="description">Description</label>
+    <textarea id="description" rows="3"></textarea>
+
+    <label for="language">Language</label>
+    <input type="text" id="language" required>
+
+    <label for="code">Code</label>
+    <textarea id="code" rows="8" required></textarea>
+
+    <button type="submit">Save Changes</button>
+  </form>
+
+  <script>
+    const params = new URLSearchParams(location.search);
+    const id = params.get("id");
+    const token = localStorage.getItem("token");
+    const headers = {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    };
+  
+    fetch(`http://mazingad-001-site1.ntempurl.com/api/Snippet/${id}`)
+      .then(res => res.json())
+      .then(snippet => {
+        document.getElementById("title").value = snippet.title;
+        document.getElementById("description").value = snippet.description || "";
+        document.getElementById("language").value = snippet.language;
+        document.getElementById("code").value = snippet.code;
+      });
+  
+    document.getElementById("edit-snippet-form").addEventListener("submit", async e => {
+      e.preventDefault();
+  
+      const payload = {
+        title: document.getElementById("title").value,
+        description: document.getElementById("description").value,
+        language: document.getElementById("language").value,
+        code: document.getElementById("code").value
+      };
+  
+      try {
+        const res = await fetch(`http://mazingad-001-site1.ntempurl.com/api/Snippet/${id}`, {
+          method: "PUT",
+          headers,
+          body: JSON.stringify(payload)
+        });
+  
+        if (!res.ok) {
+          let errorMessage = 'Failed to update snippet.';
+          const contentType = res.headers.get("content-type");
+  
+          if (contentType && contentType.includes("application/json")) {
+            const errorData = await res.json();
+            if (errorData.errors) {
+              const messages = Object.values(errorData.errors).flat();
+              errorMessage = messages.join('<br>');
+            } else {
+              errorMessage = errorData.title || errorMessage;
+            }
+          } else {
+            const errorText = await res.text();
+            errorMessage = errorText || errorMessage;
+          }
+  
+          throw new Error(errorMessage);
+        }
+  
+        await Swal.fire({
+          icon: 'success',
+          title: 'Updated!',
+          text: 'Snippet updated successfully!',
+          confirmButtonColor: '#2563eb'
+        });
+        window.location.href = "Manage-snippets-page.html";
+  
+      } catch (err) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error!',
+          html: err.message,
+          confirmButtonColor: '#d33'
+        });
+      }
+    });
+  </script>
+  
+</body>
+</html>

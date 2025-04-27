@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Code Snippets Library</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="CSS/nav.css" />
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f9f9f9;
+      margin: 0;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .filters {
+      display: flex;
+      gap: 1rem;
+      max-width: 800px;
+      margin: 0 auto 2rem;
+    }
+
+    .filters input, .filters select {
+      flex: 1;
+      padding: 0.6rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 1rem;
+    }
+
+    .grid-layout {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1.5rem;
+      padding: 1rem 2rem;
+      max-width: 1200px;
+      margin: auto;
+    }
+
+    .snippet-card {
+      background-color: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      height: 320px;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+
+    .snippet-card:hover {
+      transform: scale(1.02);
+    }
+
+    .snippet-card h3 {
+      font-size: 1.1rem;
+      color: #2563eb;
+      margin: 0 0 0.5rem;
+    }
+
+    .snippet-card p {
+      font-size: 0.9rem;
+      color: #444;
+      margin-bottom: 0.8rem;
+      flex-grow: 1;
+    }
+    .expand-hint {
+  color: #2563eb;
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-align: center;
+  margin-top: 0.3rem;
+  transition: opacity 0.3s;
+}
+
+.snippet-card:hover .expand-hint {
+  opacity: 0.8;
+  text-decoration: underline;
+}
+
+
+    .snippet-card pre {
+      background-color: #f3f3f3;
+      padding: 0.8rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      height: 100px;
+      overflow: auto;
+      margin-bottom: 0.6rem;
+      white-space: pre-wrap;
+    }
+    .snippet-meta {
+  font-size: 0.85rem;
+  color: #666;
+  margin-bottom: 0.7rem;
+}
+
+    .snippet-card .copy-btn {
+      background-color: #2563eb;
+      color: white;
+      border: none;
+      padding: 0.4rem 0.8rem;
+      border-radius: 5px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      align-self: flex-start;
+    }
+
+    /* Modal Styling */
+    #codeModal .copy-btn {
+      background-color: #2563eb;
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+
+    #modalMeta {
+      font-size: 0.9rem;
+      color: #555;
+      margin: 0.5rem 0 1rem;
+    }
+    @media (max-width: 768px) {
+  .filters {
+    flex-direction: column;
+    padding: 0 1rem;
+  }
+
+  .filters input, .filters select {
+    width: 100%;
+    font-size: 0.95rem;
+  }
+
+  .grid-layout {
+    grid-template-columns: 1fr;
+    padding: 0 1rem;
+  }
+
+  .snippet-card {
+    height: auto;
+    padding: 1rem;
+  }
+
+  .snippet-card h3 {
+    font-size: 1rem;
+  }
+
+  .snippet-card p {
+    font-size: 0.85rem;
+  }
+
+  .snippet-card pre {
+    font-size: 0.8rem;
+    height: auto;
+  }
+
+  #codeModal > div {
+    width: 95%;
+    padding: 1.2rem;
+  }
+
+  #codeModal .copy-btn {
+    font-size: 0.85rem;
+    padding: 0.4rem 0.8rem;
+  }
+}
+
+  </style>
+</head>
+
+<body>
+
+  <nav>
+    <ul>
+      <li><a href="index.html"><i class="fas fa-home"></i> Home</a></li>
+      <li><a href="courses.html"><i class="fas fa-book-open"></i> Courses & Tutorials</a></li>
+      <li><a href="Code-Snippet-Library.html"><i class="fas fa-code"></i> Code Snippet Library</a></li>
+      <li><a href="jobs.html"><i class="fas fa-briefcase"></i> Job Opportunities</a></li>
+      <li><a href="#contact"><i class="fas fa-headset"></i> Contact</a>
+        <ul>
+          <li><a href="tel:+965-97936397"><i class="fas fa-phone"></i> +965-97936397</a></li>
+          <li><a href="mailto:momenkandil72@gmail.com"><i class="fas fa-envelope"></i> momenkandil72@gmail.com</a></li>
+        </ul>
+      </li>
+    </ul>
+  </nav>
+
+  <h1>Code Snippets Library</h1>
+
+  <div class="filters">
+    <input type="text" id="search" placeholder="Search snippets by title or description...">
+    <select id="language">
+      <option value="">All Languages</option>
+      <option value="javascript">JavaScript</option>
+      <option value="python">Python</option>
+      <option value="C#">C#</option>
+      <option value="html">HTML</option>
+      <option value="css">CSS</option>
+    </select>
+  </div>
+
+  <div id="snippets-container" class="grid-layout"></div>
+
+  <!-- Modal -->
+  <div id="codeModal" style="display:none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); justify-content:center; align-items:center; z-index:9999;">
+    <div style="background:#fff; max-width:800px; width:90%; padding:2rem; border-radius:10px; position:relative;">
+      <button onclick="closeModal()" style="position:absolute; top:10px; right:10px; background:#ef4444; color:#fff; border:none; padding:5px 10px; border-radius:5px;">X</button>
+      <h2 id="modalTitle"></h2>
+      <div id="modalMeta"></div>
+      <div style="text-align: right; margin-bottom: 10px;">
+        <button class="copy-btn" onclick="copyModalCode()"><i class="fas fa-copy"></i> Copy Full Code</button>
+      </div>
+      <pre id="modalCode" style="background:#f3f3f3; padding:1rem; border-radius:10px; white-space:pre-wrap; max-height:500px; overflow-y:auto;"></pre>
+    </div>
+  </div>
+
+  <script>
+    const Toast = Swal.mixin({
+    toast: true,
+    position: 'top-end',
+    showConfirmButton: false,
+    timer: 2000,
+    timerProgressBar: true
+  });
+
+    const searchInput = document.getElementById("search");
+    const languageSelect = document.getElementById("language");
+    const container = document.getElementById("snippets-container");
+
+    async function fetchSnippets() {
+      const search = searchInput.value;
+      const language = languageSelect.value;
+      const query = `?search=${encodeURIComponent(search)}&language=${encodeURIComponent(language)}`;
+
+      const res = await fetch(`http://mazingad-001-site1.ntempurl.com/api/snippet${query}`);
+      const snippets = await res.json();
+
+      container.innerHTML = snippets.map(snippet => {
+        const shortCode = snippet.code.split('\n').slice(0, 5).join('\n');
+        return `
+          <div class="snippet-card"
+            data-title="${encodeURIComponent(snippet.title)}"
+            data-code="${encodeURIComponent(snippet.code)}"
+            data-language="${encodeURIComponent(snippet.language)}"
+            data-author="${encodeURIComponent(snippet.authorName)}"
+            data-date="${encodeURIComponent(new Date(snippet.createdAt).toLocaleDateString())}"
+            onclick="handleCardClick(this)">
+            <h3>${snippet.title}</h3>
+            <p>${snippet.description}</p>
+               <div class="snippet-meta">
+        <strong>Language:</strong> ${snippet.language} &nbsp; | &nbsp;
+        <strong>By:</strong> ${snippet.authorName} &nbsp;  &nbsp;
+      </div>
+<pre>${shortCode}</pre>
+<div class="expand-hint"><i class="fas fa-chevron-down"></i> Click to view full code</div>
+            <button class="copy-btn" onclick="event.stopPropagation(); copyToClipboard(\`${snippet.code.replace(/`/g, '\\`')}\`)">
+              <i class="fas fa-copy"></i> Copy
+            </button>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function handleCardClick(card) {
+      const title = decodeURIComponent(card.dataset.title);
+      const code = decodeURIComponent(card.dataset.code);
+      const language = decodeURIComponent(card.dataset.language);
+      const author = decodeURIComponent(card.dataset.author);
+      const date = decodeURIComponent(card.dataset.date);
+      openModal(title, code, language, author, date);
+    }
+
+    function openModal(title, code, language, author, date) {
+      document.getElementById("modalTitle").textContent = title;
+      document.getElementById("modalCode").textContent = code;
+      document.getElementById("modalMeta").textContent = `Language: ${language}   |   By: ${author}   |   Date: ${date}`;
+      document.getElementById("codeModal").style.display = "flex";
+    }
+
+    function closeModal() {
+      document.getElementById("codeModal").style.display = "none";
+    }
+
+    function copyToClipboard(code) {
+    navigator.clipboard.writeText(code).then(() => {
+      Toast.fire({
+        icon: 'success',
+        title: 'Code copied to clipboard!'
+      });
+    }).catch(() => {
+      Toast.fire({
+        icon: 'error',
+        title: 'Failed to copy code'
+      });
+    });
+  }
+
+
+    function copyModalCode() {
+    const code = document.getElementById("modalCode").textContent;
+    navigator.clipboard.writeText(code).then(() => {
+      Toast.fire({
+        icon: 'success',
+        title: 'Full code copied to clipboard!'
+      });
+    }).catch(() => {
+      Toast.fire({
+        icon: 'error',
+        title: 'Failed to copy code'
+      });
+    });
+  }
+
+
+    searchInput.addEventListener("input", fetchSnippets);
+    languageSelect.addEventListener("change", fetchSnippets);
+    fetchSnippets();
+  </script>
+</body>
+</html>

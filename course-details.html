@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Course Details - ONP</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="CSS/nav.css"/>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f4f6f9;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: auto;
+      padding: 2rem;
+      background-color: white;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+      margin-top: 2rem;
+      border-radius: 12px;
+    }
+
+    .course-header {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2rem;
+      align-items: center;
+    }
+
+    .course-header img {
+      width: 300px;
+      height: 200px;
+      border-radius: 12px;
+      object-fit: cover;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .course-details h1 {
+      margin: 0;
+      font-size: 2rem;
+      color: #2c3e50;
+    }
+
+    .course-details p {
+      color: #555;
+      margin-top: 1rem;
+      line-height: 1.6;
+    }
+    .purchase-btn {
+  display: block;
+  margin: 2rem auto 0;
+  padding: 1rem 2rem;
+  background-color: #3b82f6;
+  color: white;
+  font-size: 1.1rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.purchase-btn:hover {
+  background-color: #2563eb;
+}
+
+
+    .meta-info {
+      margin-top: 1rem;
+      color: #777;
+      font-size: 0.95rem;
+    }
+
+    .lesson-section {
+      margin-top: 2rem;
+    }
+
+    .lesson-section h2 {
+      font-size: 1.5rem;
+      color: #2c3e50;
+      margin-bottom: 1rem;
+    }
+
+    .lesson-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .lesson-list li {
+      padding: 0.75rem 1rem;
+      background-color: #f9f9f9;
+      border-left: 4px solid #27ae60;
+      margin-bottom: 0.5rem;
+      border-radius: 8px;
+    }
+
+    .purchase-btn {
+      display: block;
+      margin: 2rem auto 0;
+      padding: 1rem 2rem;
+      background-color: #27ae60;
+      color: white;
+      font-size: 1.1rem;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .purchase-btn:hover {
+      background-color: #1e874b;
+    }
+  </style>
+</head>
+<body>
+
+   
+    <!-- ===================== Navigation Bar ===================== -->
+    <nav>
+      <ul>
+        <li><a href="index.html"><i class="fas fa-home"></i> Home</a></li>
+
+          <li><a href="courses.html"><i class="fas fa-book-open"></i> Courses & Tutorials</a>
+          </li>
+          <li><a href="Code-Snippet-Library.html"><i class="fas fa-code"></i> Code Snippet Library</a></li>
+          <li><a href="jobs.html"><i class="fas fa-briefcase"></i> Job Opportunities</a></li>
+          <li><a href="#contact"><i class="fas fa-headset"></i> Contact</a>
+              <ul>
+                  <li><a href="tel:+965-97936397"><i class="fas fa-phone"></i> +965-97936397</a></li>
+                  <li><a href="mailto:momenkandil72@gmail.com"><i class="fas fa-envelope"></i>
+                          momenkandil72@gmail.com</a></li>
+              </ul>
+          </li>
+      </ul>
+  </nav>
+
+
+  <div class="container" id="course-container">
+    <!-- Course details will be inserted here -->
+  </div>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const courseId = parseInt(urlParams.get("id"));
+    const token = localStorage.getItem("token");
+
+    let isEnrolled = false;
+
+    async function loadPage() {
+  try {
+    const token = localStorage.getItem("token");
+    const headers = token ? { Authorization: "Bearer " + token } : {};
+    let userRole = "";
+    let isEnrolled = false;
+    let actionButton = "";
+
+    if (!token) {
+  actionButton = `<button class="purchase-btn" onclick="redirectToLogin()">
+    <i class="fas fa-lock"></i> Register now to access this course
+  </button>`;
+}
+
+    // Step 1: get user role
+    if (token) {
+      const user = JSON.parse(localStorage.getItem("user"));
+      console.log(user)
+      userRole = user?.roles[0] || ""; // تأكد إنك مخزن الـ role في localStorage
+    }
+
+    // Step 2: if student, check enrollment
+    if (userRole === "Student") {
+      const enrolledRes = await fetch("http://mazingad-001-site1.ntempurl.com/api/Enrollment/my-courses", { headers });
+      const enrolledCourses = await enrolledRes.json();
+      isEnrolled = enrolledCourses.some(c => c.courseId === courseId);
+    }
+
+    // Step 3: get course data (available to all)
+    const res = await fetch(`http://mazingad-001-site1.ntempurl.com/api/Course/${courseId}/preview`);
+    const data = await res.json();
+
+    const container = document.getElementById("course-container");
+
+    if (userRole === "Student") {
+      actionButton = isEnrolled
+        ? `<button class="purchase-btn" onclick="viewCourse(${data.courseId})">
+            <i class="fas fa-eye"></i> View Course
+          </button>`
+        : `<button class="purchase-btn" onclick="goToCheckout(${data.courseId})">
+            <i class="fas fa-credit-card"></i> Purchase This Course
+          </button>`;
+    } else if (userRole === "Instructor") {
+      actionButton = `<button class="purchase-btn" disabled>
+        <i class="fas fa-ban"></i> You can't buy this course
+      </button>`;
+    }
+    const imageSrc = data.imageUrl?.trim() ? data.imageUrl : "images/html.webp";
+
+    container.innerHTML = `
+      <div class="course-header">
+        <img src="${imageSrc}" alt="Course Image" />
+        <div class="course-details">
+          <h1>${data.title}</h1>
+          <p>${data.description}</p>
+          <div class="meta-info">
+            <p><strong>Category:</strong> ${data.categoryName}</p>
+            <p><strong>Instructor:</strong> ${data.instructorName}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="lesson-section">
+        <h2>Lessons</h2>
+        <ul class="lesson-list">
+          ${data.lessonTitles.map(lesson => `<li><strong>Lesson ${lesson.order}:</strong> ${lesson.title}</li>`).join("")}
+        </ul>
+      </div>
+
+      ${actionButton}
+    `;
+  } catch (err) {
+    console.error("Error loading course:", err);
+    document.getElementById("course-container").innerHTML = "<p>⚠️ Failed to load course details.</p>";
+  }
+}
+
+
+    function goToCheckout(courseId) {
+      window.open(`checkout.html?id=${courseId}`, "_blank");
+    }
+
+    function viewCourse(courseId) {
+      window.open(`course-details-enrolled.html?id=${courseId}`, "_blank");
+    }
+    function redirectToLogin() {
+  window.location.href = "login.html";
+}
+
+
+    loadPage();
+  </script>
+
+</body>
+</html>

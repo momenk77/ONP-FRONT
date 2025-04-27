@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edit Course</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f4f6f9;
+      padding: 2rem;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    form {
+      max-width: 600px;
+      margin: auto;
+      background: #fff;
+      padding: 2rem;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    label {
+      font-weight: bold;
+      margin-top: 1rem;
+      display: block;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      padding: 0.75rem;
+      margin-top: 0.5rem;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 1rem;
+    }
+
+    button {
+      margin-top: 2rem;
+      width: 100%;
+      background-color: #2563eb;
+      color: white;
+      padding: 0.75rem;
+      border: none;
+      border-radius: 6px;
+      font-size: 1.1rem;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Edit Course</h1>
+
+  <form id="edit-course-form">
+    <label for="title">Title</label>
+    <input type="text" id="title" required>
+
+    <label for="description">Description</label>
+    <textarea id="description" rows="4" required></textarea>
+
+    <label for="category">Category</label>
+    <select id="category" required></select>
+
+    <label for="price">Price</label>
+    <input type="number" id="price" step="0.01" required>
+
+    <label for="image">Change Image (optional)</label>
+    <input type="file" id="image" accept="image/*">
+
+    <button type="submit">Update Course</button>
+  </form>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const courseId = params.get("id");
+    const token = localStorage.getItem("token");
+    const headers = { 'Authorization': `Bearer ${token}` };
+
+    async function loadCourse() {
+      try {
+        const res = await fetch(`http://mazingad-001-site1.ntempurl.com/api/Course/${courseId}/public-view`);
+        const course = await res.json();
+
+        document.getElementById("title").value = course.title;
+        document.getElementById("description").value = course.description;
+        document.getElementById("price").value = course.price;
+
+        const categories = await fetch("http://mazingad-001-site1.ntempurl.com/api/category").then(res => res.json());
+        const select = document.getElementById("category");
+        categories.forEach(cat => {
+          const option = document.createElement("option");
+          option.value = cat.id;
+          option.textContent = cat.name;
+          if (cat.name === course.categoryName) option.selected = true;
+          select.appendChild(option);
+        });
+      } catch (error) {
+        console.error(error);
+        Swal.fire('Error!', 'Failed to load course data.', 'error');
+      }
+    }
+
+    loadCourse();
+
+    document.getElementById("edit-course-form").addEventListener("submit", async e => {
+      e.preventDefault();
+      const formData = new FormData();
+
+      formData.append("Title", document.getElementById("title").value);
+      formData.append("Description", document.getElementById("description").value);
+      formData.append("CategoryId", document.getElementById("category").value);
+      formData.append("Price", document.getElementById("price").value);
+
+      const imageFile = document.getElementById("image").files[0];
+      if (imageFile) formData.append("Image", imageFile);
+
+      try {
+  const res = await fetch(`http://mazingad-001-site1.ntempurl.com/api/Course/${courseId}`, {
+    method: "PUT",
+    headers,
+    body: formData
+  });
+
+  if (res.ok) {
+    await Swal.fire(
+      'Updated!',
+      'The course was updated successfully.',
+      'success'
+    );
+    window.location.href = "manage-courses-dashboard.html";
+  } else {
+    let errorMessage = 'Failed to update the course.';
+    const contentType = res.headers.get("content-type");
+
+    if (contentType && contentType.includes("application/json")) {
+      const errorData = await res.json();
+
+      if (errorData.errors) {
+        let parsedErrors = errorData.errors;
+
+        // لو errors string بدل object
+        if (typeof parsedErrors === "string") {
+          try {
+            parsedErrors = JSON.parse(parsedErrors);
+          } catch (e) {
+            console.error('Failed to parse validation errors:', e);
+          }
+        }
+
+        // ✅ جهز الرسائل في UL
+        const messages = Object.values(parsedErrors).flat();
+        errorMessage = `<ul style="text-align: left;">${messages.map(m => `<li>${m}</li>`).join('')}</ul>`;
+
+      } else if (errorData.title) {
+        errorMessage = errorData.title;
+      } else {
+        errorMessage = errorData.message || errorMessage;
+      }
+    } else {
+      const errorText = await res.text();
+      errorMessage = errorText || errorMessage;
+    }
+
+    Swal.fire({
+      icon: 'error',
+      title: 'Error!',
+      html: errorMessage
+    });
+  }
+} catch (error) {
+  console.error(error);
+  Swal.fire(
+    'Error!',
+    'Something went wrong. Please try again later.',
+    'error'
+  );
+}
+
+
+ 
+    });
+  </script>
+</body>
+
+</html>

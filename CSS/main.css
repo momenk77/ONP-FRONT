@@ -1,0 +1,205 @@
+/* ====== أساسيات عامة ====== */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  overflow-x: hidden; /* يمنع سحب يمين */
+}
+
+
+body {
+  font-family: "Segoe UI", sans-serif;
+  background-color: #f9fafb;
+  color: #111827;
+  line-height: 1.6;
+}
+
+/* ====== الهيدر & الناف بار ====== */
+header {
+  background-color: #1f2937;
+  color: #fff;
+  padding: 1rem 2rem;
+  position: relative;
+  z-index: 1500;
+}
+
+.header-container {
+  max-width: 1300px;
+  margin: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+#mobile-menu-btn {
+  display: none;
+  background: none;
+  border: none;
+  color: inherit;
+  font-size: 1.75rem;
+  cursor: pointer;
+}
+
+#main-nav {
+  display: flex;
+  gap: 1.25rem;
+  align-items: center;
+}
+
+#main-nav a {
+  color: #e5e7eb;
+  text-decoration: none;
+  font-size: 15px;
+  transition: color 0.3s;
+}
+
+#main-nav a:hover {
+  color: #3b82f6;
+}
+
+/* ====== الـ Main Section ====== */
+main {
+  padding: 2rem 1rem;
+}
+
+.features-grid {
+  display: grid;
+  gap: 2rem;
+  grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+}
+
+.card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.07);
+  text-align: center;
+}
+
+.card img {
+  width: 100px;
+  margin-bottom: 1rem;
+}
+
+.card h3 {
+  font-size: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.card p {
+  margin: 0.5rem 0 1rem;
+  color: #4b5563;
+}
+
+.card a {
+  color: #3b82f6;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+/* ====== الـ Profile Sidebar ====== */
+.profile-sidebar {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 260px;
+  height: 100%;
+  background-color: #1f2937;
+  color: #e5e7eb;
+  padding: 1.5rem 1rem;
+  box-shadow: -4px 0 12px rgba(0, 0, 0, 0.2);
+  border-top-left-radius: 10px;
+  border-bottom-left-radius: 10px;
+  z-index: 2000;
+
+  /* ✅ النقطة المهمة ↓↓↓ */
+  transform: translateX(100%); /* يخرجها بره الشاشة */
+  transition: transform 0.3s ease-in-out;
+}
+
+.profile-sidebar.open {
+  transform: translateX(0); /* يظهرها */
+}
+
+#sidebar-avatar {
+  width: 85px;
+  height: 85px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #3b82f6;
+  background-color: white;
+  margin-bottom: 0.5rem;
+  box-shadow: 0 0 8px rgba(59, 130, 246, 0.4);
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+#nav-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 2px solid #3b82f6;
+  object-fit: cover;
+}
+
+
+.profile-header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.profile-links {
+  list-style: none;
+}
+
+.profile-links li + li {
+  margin-top: 0.8rem;
+}
+
+.profile-links a {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: #e5e7eb;
+  text-decoration: none;
+  font-size: 15px;
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+
+.profile-links a:hover {
+  background-color: #374151;
+}
+
+/* ====== Responsive ======= */
+@media (max-width: 768px) {
+  .header-container {
+    flex-direction: row;
+  }
+
+  #mobile-menu-btn {
+    display: block;
+  }
+
+  #main-nav {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    flex-direction: column;
+    background-color: #1f2937;
+    padding: 1rem 0;
+  }
+
+  #main-nav.open {
+    display: flex;
+  }
+}

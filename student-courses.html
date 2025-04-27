@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Enrolled Courses</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 2rem;
+      background-color: #f4f6f9;
+      color: #1f2937;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 2rem;
+      color: #2c3e50;
+    }
+
+    .course-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  padding: 0 1rem;
+}
+
+.course-card {
+  background-color: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.course-thumb-container {
+  padding: 1rem 1rem 0;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.course-thumb {
+  width: 160px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+
+.course-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+}
+
+.course-img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+}
+
+.course-img {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  border-radius: 16px 16px 0 0;
+  display: block;
+}
+
+.course-info {
+  padding: 1.2rem;
+}
+
+.course-info h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1.15rem;
+  color: #1f2937;
+  font-weight: 600;
+}
+
+.course-info p {
+  margin: 0.3rem 0;
+  font-size: 0.95rem;
+  color: #4b5563;
+}
+
+
+.view-course-btn {
+  margin-top: 1rem;
+  display: inline-block;
+  background-color: #2563eb;
+  color: #fff;
+  padding: 0.5rem 0.9rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  text-align: center;
+  transition: background-color 0.2s ease;
+  text-decoration: none; /* ✅ حذف الخط */
+}
+
+.view-course-btn:hover {
+  background-color: #1d4ed8;
+  text-decoration: none;
+}
+
+
+
+.no-courses-msg {
+  grid-column: 1 / -1;
+  text-align: center;
+  font-size: 1rem;
+  color: #6b7280;
+}
+
+
+  
+  </style>
+</head>
+<body>
+  <h1><i class="fas fa-book-reader"></i> My Enrolled Courses</h1>
+
+  <div class="course-grid" id="course-list">
+    <!-- Courses will be inserted here -->
+  </div>
+
+  <script>
+    const token = localStorage.getItem("token");
+    const headers = { "Authorization": `Bearer ${token}` };
+
+    async function loadCourses() {
+      try {
+        const res = await fetch("http://mazingad-001-site1.ntempurl.com/api/Enrollment/my-courses", { headers });
+        const courses = await res.json();
+
+        const list = document.getElementById("course-list");
+        list.innerHTML = "";
+
+        if (!courses.length) {
+          list.innerHTML = "<p class='no-courses-msg'>You haven't enrolled in any courses yet.</p>";
+          return;
+        }
+
+        courses.forEach(course => {
+  const div = document.createElement("div");
+  div.className = "course-card";
+  div.onclick = () => window.location.href = `course-details-enrolled.html?id=${course.courseId}`;
+  div.innerHTML = `
+  <div class="course-thumb-container">
+    <img src="${course.imageUrl || 'images/html.webp'}" alt="${course.title}" class="course-thumb"/>
+  </div>
+  <div class="course-info">
+    <h3>${course.title}</h3>
+    <p><strong>Category:</strong> ${course.category}</p>
+    <p><strong>Instructor:</strong> ${course.instructor}</p>
+    <p><strong>Enrolled At:</strong> ${new Date(course.enrolledAt).toLocaleDateString()}</p>
+    <a class="view-course-btn" href="course-details-enrolled.html?id=${course.courseId}">View Course →</a>
+  </div>
+`;
+
+
+  list.appendChild(div);
+});
+
+
+      } catch (err) {
+        console.error(err);
+        document.getElementById("course-list").innerHTML = "<p style='text-align:center;'>❌ Failed to load courses.</p>";
+      }
+    }
+
+    loadCourses();
+  </script>
+</body>
+</html>

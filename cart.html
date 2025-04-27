@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cart - ONP</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="CSS/nav.css">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f4f6f9;
+    }
+
+    .cart-container {
+      max-width: 900px;
+      margin: auto;
+      background-color: white;
+      border-radius: 12px;
+      padding: 2rem;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    }
+
+    .cart-container h2 {
+      text-align: center;
+      margin-bottom: 2rem;
+      color: #2c3e50;
+    }
+
+    .cart-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: #fdfdfd;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      border: 1px solid #eee;
+      border-radius: 8px;
+    }
+
+    .cart-item-title {
+      font-weight: bold;
+      font-size: 1.1rem;
+      color: #34495e;
+    }
+
+    .cart-item span.price {
+      font-weight: 500;
+      color: #2ecc71;
+    }
+
+    .remove-btn {
+      background: none;
+      border: none;
+      color: #e74c3c;
+      cursor: pointer;
+      font-size: 1.2rem;
+    }
+
+    .cart-summary {
+      margin-top: 2rem;
+      padding: 1rem;
+      border-top: 1px solid #ccc;
+      font-size: 1.1rem;
+      color: #2c3e50;
+    }
+
+    .checkout-btn {
+      display: block;
+      width: 100%;
+      padding: 1rem;
+      background-color: #27ae60;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 1rem;
+      transition: background 0.3s;
+    }
+
+    .checkout-btn:hover {
+      background-color: #1e8f51;
+    }
+
+    .empty-message {
+      text-align: center;
+      color: #888;
+      font-size: 1.1rem;
+      margin-top: 2rem;
+    }
+  </style>
+</head>
+<body>
+
+    <!-- ===================== Navigation Bar ===================== -->
+    <nav>
+      <ul>
+        <li><a href="index.html"><i class="fas fa-home"></i> Home</a></li>
+
+          <li><a href="courses.html"><i class="fas fa-book-open"></i> Courses & Tutorials</a>
+          </li>
+          <li><a href="Code-Snippet-Library.html"><i class="fas fa-code"></i> Code Snippet Library</a></li>
+          <li><a href="jobs.html"><i class="fas fa-briefcase"></i> Job Opportunities</a></li>
+          <li><a href="#contact"><i class="fas fa-headset"></i> Contact</a>
+              <ul>
+                  <li><a href="tel:+965-97936397"><i class="fas fa-phone"></i> +965-97936397</a></li>
+                  <li><a href="mailto:momenkandil72@gmail.com"><i class="fas fa-envelope"></i>
+                          momenkandil72@gmail.com</a></li>
+              </ul>
+          </li>
+      </ul>
+  </nav>
+  <main class="cart-container">
+    <h2>Your Cart</h2>
+    <div id="cart-items"></div>
+
+    <div class="cart-summary" id="cart-summary" style="display: none;">
+      Total Items: 0 <br />
+      Total Price: $0
+    </div>
+
+    <button class="checkout-btn" onclick="checkout()">Checkout</button>
+  </main>
+
+  <script>
+    const Toast = Swal.mixin({
+      toast: true,
+      position: 'top-end',
+      showConfirmButton: false,
+      timer: 2000,
+      timerProgressBar: true
+    });
+  
+    async function loadCart() {
+      const token = localStorage.getItem("token");
+      const cartItemsContainer = document.getElementById("cart-items");
+      const summary = document.getElementById("cart-summary");
+  
+      try {
+        const res = await fetch("http://mazingad-001-site1.ntempurl.com/api/student-courses/cart", {
+          headers: {
+            "Authorization": `Bearer ${token}`
+          }
+        });
+  
+        if (!res.ok) throw new Error("Unauthorized or Failed to load");
+  
+        const data = await res.json();
+  
+        if (!data || data.length === 0) {
+          cartItemsContainer.innerHTML = `<p class="empty-message">🚫 No Courses in your cart.</p>`;
+          summary.style.display = "none";
+          return;
+        }
+  
+        cartItemsContainer.innerHTML = "";
+        let total = 0;
+  
+        data.forEach(item => {
+          total += item.price ?? 0;
+  
+          const div = document.createElement("div");
+          div.className = "cart-item";
+          div.innerHTML = `
+            <span class="cart-item-title">${item.title} <br/><small>by ${item.instructorName}</small></span>
+            <span class="price">$${item.price?.toFixed(2) ?? 0}</span>
+            <button class="remove-btn" title="Remove"><i class="fas fa-trash"></i></button>
+          `;
+  
+          div.querySelector(".remove-btn").addEventListener("click", () => removeFromCart(item.courseId));
+          cartItemsContainer.appendChild(div);
+        });
+  
+        summary.style.display = "block";
+        summary.innerHTML = `
+          <strong>Total Items:</strong> ${data.length} <br/>
+          <strong>Total Price:</strong> $${total.toFixed(2)}
+        `;
+  
+      } catch (err) {
+        console.error(err);
+        cartItemsContainer.innerHTML = `<p class="empty-message">❌ Failed to load cart.</p>`;
+        summary.style.display = "none";
+      }
+    }
+  
+    function removeFromCart(courseId) {
+      const token = localStorage.getItem("token");
+  
+      fetch(`http://mazingad-001-site1.ntempurl.com/api/student-courses/cart/${courseId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      .then(res => {
+        if (res.ok) {
+          Toast.fire({
+            icon: 'success',
+            title: 'Item removed from cart'
+          });
+          loadCart(); // reload after deletion
+        } else {
+          Toast.fire({
+            icon: 'error',
+            title: "Couldn't remove item"
+          });
+        }
+      });
+    }
+  
+    async function checkout() {
+      const token = localStorage.getItem("token");
+
+    const resCart = await fetch("http://mazingad-001-site1.ntempurl.com/api/student-courses/cart", {
+      headers: {
+        "Authorization": `Bearer ${token}`
+      }
+    });
+
+    const cartItems = await resCart.json();
+
+    if (!cartItems || cartItems.length === 0) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Cart is Empty',
+        text: 'Please add at least one course before proceeding to checkout.',
+        confirmButtonColor: '#f39c12'
+      });
+      return;
+    }
+      const { value: formValues } = await Swal.fire({
+        title: 'Enter Payment Details',
+        html:
+          `<input id="swal-card-number" class="swal2-input" placeholder="Card Number">
+           <input id="swal-expiry" class="swal2-input" placeholder="MM/YY">
+           <input id="swal-cvv" class="swal2-input" placeholder="CVV">
+           <input id="swal-name" class="swal2-input" placeholder="Cardholder Name">`,
+        focusConfirm: false,
+        confirmButtonText: 'Pay Now',
+        showCancelButton: true,
+        preConfirm: () => {
+          const number = document.getElementById('swal-card-number').value;
+          const expiry = document.getElementById('swal-expiry').value;
+          const cvv = document.getElementById('swal-cvv').value;
+          const name = document.getElementById('swal-name').value;
+  
+          if (!number || !expiry || !cvv || !name) {
+            Swal.showValidationMessage('Please fill all fields');
+            return false;
+          }
+  
+          return { number, expiry, cvv, name };
+        }
+      });
+  
+      if (formValues) {
+        // Show loading
+        Swal.fire({
+          title: 'Processing Payment...',
+          allowOutsideClick: false,
+          didOpen: () => Swal.showLoading()
+        });
+  
+        setTimeout(() => {
+          Swal.close();
+          completePurchase();
+        }, 1500);
+      }
+    }
+  
+    async function completePurchase() {
+      const token = localStorage.getItem("token");
+  
+      try {
+        const resCart = await fetch("http://mazingad-001-site1.ntempurl.com/api/student-courses/cart", {
+          headers: {
+            "Authorization": `Bearer ${token}`
+          }
+        });
+  
+        const cartItems = await resCart.json();
+        const courseIds = cartItems.map(c => c.courseId);
+  
+        const res = await fetch("http://mazingad-001-site1.ntempurl.com/api/Course/checkout", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(courseIds)
+        });
+  
+        if (!res.ok) throw new Error("Checkout failed");
+  
+        for (const courseId of courseIds) {
+          await fetch(`http://mazingad-001-site1.ntempurl.com/api/student-courses/cart/${courseId}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+        }
+  
+        Swal.fire({
+          icon: 'success',
+          title: '🎉 Purchase Completed',
+          text: 'Your cart has been successfully checked out.',
+          confirmButtonColor: '#27ae60'
+        }).then(() => window.location.reload());
+  
+      } catch (err) {
+        console.error(err);
+        Swal.fire({
+          icon: 'error',
+          title: 'Checkout Failed',
+          text: '❌ Failed to complete checkout. Please try again.',
+          confirmButtonColor: '#e74c3c'
+        });
+      }
+    }
+  
+    loadCart();
+  </script>
+
+
+</body>
+</html>

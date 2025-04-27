@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Wishlist</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="CSS/nav.css">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f4f6f9;
+      margin: 0;
+    }
+
+    .wishlist-container {
+      max-width: 900px;
+      margin: auto;
+      background-color: white;
+      border-radius: 12px;
+      padding: 2rem;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    }
+
+    .wishlist-container h2 {
+      text-align: center;
+      margin-bottom: 2rem;
+      color: #2c3e50;
+    }
+
+    .course-card {
+  display: flex;
+  align-items: center;
+  background-color: #fdfdfd;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border: 1px solid #eee;
+  border-radius: 10px;
+  gap: 1rem;
+  transition: box-shadow 0.3s ease;
+}
+.course-card:hover {
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+}
+
+.course-image {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 2px solid #27ae60;
+}
+.course-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.course-info strong {
+  font-size: 1.1rem;
+  color: #2c3e50;
+}
+
+    .course-info small {
+      color: #888;
+    }
+
+
+    .course-info .meta {
+  font-size: 0.9rem;
+  color: #888;
+}
+
+.course-info .price {
+  font-weight: bold;
+  color: #27ae60;
+  font-size: 1rem;
+}
+
+.remove-btn {
+  background: none;
+  border: none;
+  color: #e74c3c;
+  cursor: pointer;
+  font-size: 1.3rem;
+}
+
+    .empty-message {
+      text-align: center;
+      color: #888;
+      font-size: 1.1rem;
+      margin-top: 2rem;
+    }
+  </style>
+</head>
+<body>
+    <!-- ===================== Navigation Bar ===================== -->
+    <nav>
+      <ul>
+        <li><a href="index.html"><i class="fas fa-home"></i> Home</a></li>
+
+          <li><a href="courses.html"><i class="fas fa-book-open"></i> Courses & Tutorials</a>
+          </li>
+          <li><a href="Code-Snippet-Library.html"><i class="fas fa-code"></i> Code Snippet Library</a></li>
+          <li><a href="jobs.html"><i class="fas fa-briefcase"></i> Job Opportunities</a></li>
+          <li><a href="#contact"><i class="fas fa-headset"></i> Contact</a>
+              <ul>
+                  <li><a href="tel:+965-97936397"><i class="fas fa-phone"></i> +965-97936397</a></li>
+                  <li><a href="mailto:momenkandil72@gmail.com"><i class="fas fa-envelope"></i>
+                          momenkandil72@gmail.com</a></li>
+              </ul>
+          </li>
+      </ul>
+  </nav>
+  <div class="wishlist-container">
+    <h2><i class="fas fa-heart"></i> My Wishlist</h2>
+    <div id="wishlist-items"></div>
+  </div>
+
+  <script>
+    const Toast = Swal.mixin({
+    toast: true,
+    position: 'top-end',
+    showConfirmButton: false,
+    timer: 2000,
+    timerProgressBar: true
+  });
+
+    const token = localStorage.getItem("token");
+    const wishlistContainer = document.getElementById("wishlist-items");
+
+    if (!token) {
+      wishlistContainer.innerHTML = `<p class="empty-message">🔒 Please <a href='login.html'>log in</a> to view your wishlist.</p>`;
+    } else {
+      fetch("http://mazingad-001-site1.ntempurl.com/api/student-courses/favorites", {
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (!data.length) {
+          wishlistContainer.innerHTML = `<p class="empty-message">💔 Your wishlist is empty.</p>`;
+          return;
+        }
+
+        data.forEach(course => {
+          const card = document.createElement("div");
+          card.className = "course-card";
+
+          card.innerHTML = `
+        <a href="course-details.html?id=${course.courseId}" target="_blank" style="display: flex; align-items: center; text-decoration: none; color: inherit; gap: 1rem; flex: 1;">
+          <img src="${course.imageUrl || 'images/html.webp'}" alt="Course Image" class="course-image" />
+          <div class="course-info">
+            <strong>${course.title}</strong>
+            <div class="meta">By ${course.instructorName} | ${course.categoryName}</div>
+            <div class="price">${course.price ? `${course.price} EGP` : 'Free'}</div>
+          </div>
+        </a>
+        <button class="remove-btn" title="Remove"><i class="fas fa-trash"></i></button>
+      `;
+
+          card.querySelector(".remove-btn").addEventListener("click", () => removeFromFavorites(course.courseId));
+          wishlistContainer.appendChild(card);
+        });
+      })
+      .catch(err => {
+        console.error(err);
+        wishlistContainer.innerHTML = `<p class="empty-message">❌ Failed to load wishlist.</p>`;
+      });
+    }
+
+    function removeFromFavorites(courseId) {
+  Swal.fire({
+    title: 'Are you sure?',
+    text: "This course will be removed from your wishlist.",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#e74c3c',
+    cancelButtonColor: '#aaa',
+    confirmButtonText: 'Yes, remove it'
+  }).then((result) => {
+    if (result.isConfirmed) {
+      fetch(`http://mazingad-001-site1.ntempurl.com/api/student-courses/favorites/${courseId}`, {
+        method: "DELETE",
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
+      })
+      .then(res => {
+        if (res.ok) {
+          Toast.fire({
+            icon: 'success',
+            title: 'Removed from wishlist'
+          });
+          // بدلاً من reload نعيد التحميل محليًا
+          setTimeout(() => location.reload(), 1000);
+        } else {
+          Toast.fire({
+            icon: 'error',
+            title: 'Failed to remove course'
+          });
+        }
+      })
+      .catch(() => {
+        Toast.fire({
+          icon: 'error',
+          title: 'Something went wrong'
+        });
+      });
+    }
+  });
+}
+
+  </script>
+</body>
+</html>

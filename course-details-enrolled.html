@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Course Lessons</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+      height: 100%;
+      background: #ecf0f1;
+    }
+
+    aside {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 250px;
+      height: 100vh;
+      background: #2c3e50;
+      color: white;
+      padding: 1rem;
+      overflow-y: auto;
+      z-index: 1000;
+    }
+
+    aside h2 {
+      font-size: 1.2rem;
+      margin-bottom: 1rem;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    li {
+      padding: 0.75rem;
+      background-color: #34495e;
+      margin-bottom: 0.5rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    li:hover,
+    .active {
+      background-color: #1abc9c;
+    }
+
+    main {
+      margin-left: 270px;
+      padding: 2rem;
+    }
+
+    .course-info h1 {
+      font-size: 2rem;
+      margin: 0 0 1rem 0;
+      color: #2c3e50;
+    }
+
+    .course-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      font-size: 1rem;
+      color: #555;
+    }
+
+    .course-meta i {
+      margin-right: 5px;
+      color: #27ae60;
+    }
+
+    .progress-bar {
+      background: #ccc;
+      height: 16px;
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 1rem 0;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: #27ae60;
+      width: 0;
+      transition: width 0.4s ease;
+    }
+
+    .video-section video {
+      width: 100%;
+      height: 400px;
+      border-radius: 12px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+      margin-top: 1rem;
+    }
+
+    .video-section, .text-section, .code-section {
+      margin-top: 2rem;
+    }
+
+    h2 {
+      font-size: 1.5rem;
+      color: #2c3e50;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+    }
+
+    h2 i {
+      margin-right: 10px;
+      color: #27ae60;
+    }
+
+    #text-content {
+      font-size: 1rem;
+      line-height: 1.6;
+      color: #333;
+    }
+
+    iframe {
+      width: 100%;
+      height: 300px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      margin-top: 1rem;
+    }
+
+    pre {
+      background: #2d3436;
+      color: #f1f1f1;
+      padding: 1rem;
+      overflow-x: auto;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+    }
+
+    .code-label {
+      font-weight: bold;
+      margin: 1rem 0 0.5rem;
+      font-size: 1.1rem;
+      color: #34495e;
+    }
+
+    .actions {
+      margin-top: 2rem;
+    }
+
+    .actions select,
+    .actions button {
+      font-size: 1rem;
+      padding: 0.5rem 1rem;
+      margin-right: 1rem;}
+
+      .video-frame {
+  background-color: #000;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.3);
+  margin-top: 1rem;
+}
+
+.video-frame video {
+  width: 100%;
+  height: 460px;
+  display: block;
+  border: none;
+}
+.video-wrapper {
+  background-color: #000;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
+  margin-top: 1rem;
+  position: relative;
+}
+
+.video-header {
+  background: #1a1a1a;
+  color: #fff;
+  padding: 0.75rem 1rem;
+  font-weight: bold;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #444;
+}
+
+.video-header i {
+  margin-right: 8px;
+  color: #27ae60;
+}
+
+.video-wrapper video {
+  width: 100%;
+  height: 460px;
+  display: block;
+  border: none;
+  background: #000;
+}
+.actions {
+  margin-top: 2rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+}
+
+.action-btn {
+  background-color: #27ae60;
+  color: white;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  font-size: 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.action-btn:hover {
+  background-color: #1e874b;
+}
+
+.action-btn.secondary {
+  background-color: #2c3e50;
+}
+
+.action-btn.secondary:hover {
+  background-color: #34495e;
+}
+
+.rating-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.rating-select {
+  padding: 0.6rem 1rem;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background-color: white;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.05);
+}
+.completion-message {
+  background-color: #dff0d8;
+  color: #2c662d;
+  border: 1px solid #c3e6cb;
+  padding: 1rem;
+  margin-top: 1rem;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+.completion-message i {
+  color: #27ae60;
+  font-size: 1.4rem;
+}
+
+
+  </style>
+</head>
+<body>
+
+<aside>
+  <h2><i class="fas fa-list"></i> Lessons</h2>
+  <ul id="lesson-list"></ul>
+</aside>
+
+<main>
+  <div class="course-info">
+    <h1 id="course-title">Loading...</h1>
+    <div class="course-meta">
+      <p><i class="fas fa-tag"></i> <span id="course-category"></span></p>
+      <p><i class="fas fa-chalkboard-teacher"></i> <span id="course-instructor"></span></p>
+    </div>
+    <div class="progress-bar">
+      <div class="progress-bar-fill" id="progress-bar-fill"></div>
+    </div>
+    <div id="completion-message" class="completion-message" style="display: none;">
+      <i class="fas fa-check-circle"></i> You have completed this course!
+    </div>
+    
+
+    <p id="course-desc"></p>
+  </div>
+
+  <div class="video-section" id="video-section" style="display:none;">
+    <h2><i class="fas fa-video"></i> Lesson Video</h2>
+    <div class="video-wrapper">
+      <div class="video-header">
+        <i class="fas fa-play-circle"></i> Now Playing
+      </div>
+      <video id="video-player" controls></video>
+    </div>
+    
+  </div>
+  
+  <div class="text-section" id="text-section" style="display:none;">
+    <h2><i class="fas fa-file-alt"></i> Lesson Notes</h2>
+    <p id="text-content"></p>
+  </div>
+
+  <div class="code-section" id="code-section" style="display:none;">
+    <h2><i class="fas fa-code"></i> Code Snippets</h2>
+    <div id="code-snippets-container"></div>
+    <iframe id="live-preview" style="display:none;"></iframe>
+  </div>
+
+  <div class="actions">
+    <button id="mark-complete-btn" class="action-btn">
+      ✅ Mark as Completed
+    </button>
+  
+    <div class="rating-group">
+      <select id="rating-select" class="rating-select">
+        <option value="">Rate this course</option>
+        <option value="5">⭐⭐⭐⭐⭐</option>
+        <option value="4">⭐⭐⭐⭐</option>
+        <option value="3">⭐⭐⭐</option>
+        <option value="2">⭐⭐</option>
+        <option value="1">⭐</option>
+      </select>
+      <button onclick="submitRating()" class="action-btn secondary">
+        Submit Rating
+      </button>
+    </div>
+  </div>
+  
+</main>
+
+<script>
+  const Toast = Swal.mixin({
+  toast: true,
+  position: 'top-end',
+  showConfirmButton: false,
+  timer: 2000,
+  timerProgressBar: true
+});
+
+  const courseId = new URLSearchParams(window.location.search).get("id");
+  const token = localStorage.getItem("token");
+  let contents = [];
+  let selectedLessonId = null;
+
+  async function loadCourse() {
+    const res = await fetch(`http://mazingad-001-site1.ntempurl.com/api/Course/${courseId}/student-view`, {
+      headers: { Authorization: "Bearer " + token }
+    });
+
+  // ✅ لو Unauthorized، نحوله تلقائي
+  if (res.status === 401 || res.status === 403) {
+    window.location.href = "unauthorized.html";
+    return;
+  }
+
+  // ✅ لو حصل خطأ آخر (زي 404 مثلاً)
+  if (!res.ok) {
+  Swal.fire({
+    icon: 'error',
+    title: 'Failed to load course',
+    text: 'Please try again later or contact support.',
+    confirmButtonColor: '#e74c3c'
+  });
+  return;
+}
+
+
+
+
+    const data = await res.json();
+
+    document.getElementById("course-title").textContent = data.title;
+    document.getElementById("course-category").textContent = data.categoryName;
+    document.getElementById("course-instructor").textContent = data.instructorName;
+    document.getElementById("course-desc").textContent = data.description;
+
+    contents = data.contents;
+    const list = document.getElementById("lesson-list");
+    contents.forEach((c, i) => {
+      const li = document.createElement("li");
+      li.textContent = `Lesson ${c.order}: ${c.title}`;
+      li.onclick = () => showLesson(i);
+      list.appendChild(li);
+    });
+    if (contents.length > 0) showLesson(0);
+    loadProgress();
+    loadRating();
+  }
+
+  async function loadProgress() {
+  const res = await fetch(`http://mazingad-001-site1.ntempurl.com/api/CourseProgress/${courseId}`, {
+    headers: { Authorization: "Bearer " + token }
+  });
+  const data = await res.json();
+  const fill = document.getElementById("progress-bar-fill");
+  fill.style.width = `${data.progressPercentage}%`;
+
+  const message = document.getElementById("completion-message");
+  if (data.progressPercentage === 100) {
+    message.style.display = "flex";
+  } else {
+    message.style.display = "none";
+  }
+}
+
+
+  async function loadRating() {
+    const res = await fetch(`http://mazingad-001-site1.ntempurl.com/api/CourseRating/${courseId}`, {
+      headers: { Authorization: "Bearer " + token }
+    });
+    const value = await res.json();
+    if (value) document.getElementById("rating-select").value = value;
+  }
+  function showLesson(index) {
+  const lesson = contents[index];
+  console.log(lesson)
+  selectedLessonId = lesson.id; // ✅ استخدم Order بدل Id
+
+  document.querySelectorAll("#lesson-list li").forEach((li, i) => {
+    li.classList.toggle("active", i === index);
+  });
+
+  document.getElementById("video-section").style.display = lesson.videoUrl ? "block" : "none";
+  document.getElementById("video-player").src = lesson.videoUrl || "";
+
+  document.getElementById("text-section").style.display = lesson.textContent ? "block" : "none";
+  document.getElementById("text-content").textContent = lesson.textContent || "";
+
+  const codeContainer = document.getElementById("code-snippets-container");
+  codeContainer.innerHTML = "";
+  const iframe = document.getElementById("live-preview");
+
+  if (lesson.lessonCodes?.length) {
+    lesson.lessonCodes.forEach((code, idx) => {
+      const label = document.createElement("div");
+      label.className = "code-label";
+      label.textContent = code.language;
+      const pre = document.createElement("pre");
+      pre.textContent = code.code;
+      codeContainer.appendChild(label);
+      codeContainer.appendChild(pre);
+      if (idx === 0 && code.language.toLowerCase().includes("html")) {
+        iframe.srcdoc = code.code;
+        iframe.style.display = "block";
+      } else {
+        iframe.style.display = "none";
+      }
+    });
+    document.getElementById("code-section").style.display = "block";
+  } else {
+    document.getElementById("code-section").style.display = "none";
+  }
+}
+
+document.getElementById("mark-complete-btn").onclick = async () => {
+  if (!selectedLessonId) return;
+  await fetch(`http://mazingad-001-site1.ntempurl.com/api/CourseProgress/${selectedLessonId}`, {
+    method: "POST",
+    headers: { Authorization: "Bearer " + token }
+  })
+    .then(res => {
+      if (!res.ok) throw new Error("Mark failed");
+      return res.text();
+    })
+    .then(msg => {
+  Toast.fire({
+    icon: 'success',
+    title: msg
+  });
+  loadProgress();
+})
+.catch(err => {
+  console.error(err);
+  Swal.fire({
+    icon: 'error',
+    title: 'Failed to mark lesson',
+    text: 'Please try again later.',
+    confirmButtonColor: '#e74c3c'
+  });
+});
+
+};
+
+  function submitRating() {
+    const value = +document.getElementById("rating-select").value;
+
+    if (!value) {
+      Toast.fire({
+        icon: 'warning',
+        title: 'Please select a rating first'
+      });
+      return;
+    }
+
+    fetch(`http://mazingad-001-site1.ntempurl.com/api/CourseRating/${courseId}`, {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    Authorization: "Bearer " + token
+  },
+  body: JSON.stringify({ ratingValue: value })
+})
+.then(() => {
+  Toast.fire({
+    icon: 'success',
+    title: 'Thank you for your rating!'
+  });
+})
+.catch(() => {
+  Swal.fire({
+    icon: 'error',
+    title: 'Rating failed',
+    text: 'Please try again.',
+    confirmButtonColor: '#e74c3c'
+  });
+});
+  }
+
+  loadCourse();
+</script>
+
+</body>
+</html>

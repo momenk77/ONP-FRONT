@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Courses - ONP</title>
+  <link rel="stylesheet" href="CSS/normalize.css" />
+  <link rel="stylesheet" href="CSS/all.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 0;
+      background-color: #f9f9f9;
+    }
+
+    .hidden-body {
+  visibility: hidden;
+}
+
+
+    header {
+      background-color: #2c3e50;
+      color: white;
+      padding: 1rem 2rem;
+      text-align: center;
+    }
+
+    .search-bar {
+      max-width: 1000px;
+      margin: 2rem auto 0;
+      display: flex;
+      gap: 1rem;
+      padding: 0 2rem;
+      flex-wrap: wrap;
+    }
+
+    .search-bar input,
+    .search-bar select {
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 1rem;
+      flex: 1;
+    }
+
+    .course-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+      padding: 2rem;
+      max-width: 1200px;
+      margin: auto;
+    }
+
+    .course-card {
+      background-color: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.2s ease;
+    }
+
+    .course-card:hover {
+      transform: translateY(-4px);
+    }
+
+    .course-card img {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+    }
+
+    .course-info {
+      padding: 1rem;
+    }
+
+    .course-info h3 {
+      margin: 0 0 0.5rem;
+      font-size: 1.2rem;
+      color: #2c3e50;
+    }
+
+    .course-info p {
+      font-size: 0.95rem;
+      color: #555;
+      margin-bottom: 0.5rem;
+    }
+
+    .course-info span {
+      display: block;
+      font-size: 0.85rem;
+      color: #777;
+    }
+
+    .card-actions {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .card-actions button {
+      background-color: #27ae60;
+      border: none;
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .card-actions button:hover {
+      background-color: #219150;
+    }
+
+    footer {
+      background-color: #eee;
+      text-align: center;
+      padding: 1rem;
+      font-size: 0.85rem;
+      margin-top: 2rem;
+    }
+
+    .icon-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      margin: 0 0.5rem;
+      font-size: 1.2rem;
+      color: #2c3e50;
+    }
+
+    .icon-btn:hover {
+      color: #27ae60;
+    }
+
+    .stars {
+      color: #f1c40f;
+      margin: 0.5rem 0;
+    }
+  </style>
+</head>
+
+<body class="hidden-body">
+  <div id="nav-placeholder"></div>
+  <header>
+    <h1>Available Courses</h1>
+  </header>
+
+  <div class="search-bar">
+    <input type="text" id="searchInput" placeholder="Search by name...">
+    <select id="sortSelect">
+      <option value="">Sort By</option>
+      <option value="rating">Rating</option>
+      <option value="students">Students</option>
+      <option value="price">Price</option>
+    </select>
+  </div>
+
+  <main>
+    <section class="course-grid" id="courses-container">
+      <!-- Courses will load here -->
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 Online Learning Platform. All rights reserved.</p>
+  </footer>
+
+  <script>
+    const Toast = Swal.mixin({
+      toast: true,
+      position: 'top-end',
+      showConfirmButton: false,
+      timer: 2000,
+      timerProgressBar: true
+    });
+
+    let allCourses = [];
+
+
+    document.addEventListener("DOMContentLoaded", () => {
+
+      fetch("http://mazingad-001-site1.ntempurl.com/api/Course/by-category")
+        .then(res => res.json())
+        .then(data => {
+          allCourses = data;
+          renderCourses(data);
+        });
+
+      document.getElementById("searchInput").addEventListener("input", filterAndSort);
+      document.getElementById("sortSelect").addEventListener("change", filterAndSort);
+    });
+
+    function filterAndSort() {
+      const query = document.getElementById("searchInput").value.toLowerCase();
+      const sort = document.getElementById("sortSelect").value;
+
+      let filtered = allCourses.filter(course =>
+        course.title.toLowerCase().includes(query)
+      );
+
+      if (sort === "rating") {
+        filtered.sort((a, b) => (b.averageRating || 0) - (a.averageRating || 0));
+      } else if (sort === "students") {
+        filtered.sort((a, b) => (b.enrolledStudents || 0) - (a.enrolledStudents || 0));
+      } else if (sort === "price") {
+        filtered.sort((a, b) => (a.price || 0) - (b.price || 0));
+      }
+
+      renderCourses(filtered);
+    }
+
+    function renderCourses(courses) {
+      const container = document.getElementById("courses-container");
+      container.innerHTML = "";
+
+      if (!courses.length) {
+        container.innerHTML = "<p style='text-align:center;'>No courses found.</p>";
+        return;
+      }
+
+      courses.forEach(course => {
+        const card = document.createElement("div");
+        card.className = "course-card";
+        card.style.cursor = "pointer";
+        card.onclick = () => viewCourse(course.id);
+        console.log(course);
+        const imageSrc = course.imageUrl?.trim() ? course.imageUrl : "images/html.webp";
+        card.innerHTML = `
+          <img src="${imageSrc}" alt="Course Image">
+          <div class="course-info">
+            <h3>${course.title}</h3>
+            <p>${course.description}</p>
+            <span>Category: ${course.categoryName}</span>
+            <span>Instructor: ${course.instructorName}</span>
+            <div class="stars">${generateStars(course.averageRating ?? 0)}</div>
+            <span>Students: ${course.enrolledStudents ?? 0}</span>
+            <span>Price: ${course.price ?? 0}</span>
+            <div class="card-actions">
+              <button class="icon-btn" title="Add to Wishlist" onclick="event.stopPropagation(); addToWishlist(${course.id})">
+                <i class="fas fa-heart"></i>
+              </button>
+              <button class="icon-btn" title="Add to Cart" onclick="event.stopPropagation(); addToCart(${course.id})">
+                <i class="fas fa-cart-plus"></i>
+              </button>
+            </div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function viewCourse(courseId) {
+      window.location.href = `course-details.html?id=${courseId}`;
+    }
+
+    function generateStars(rating) {
+      const fullStars = Math.floor(rating);
+      const hasHalfStar = rating % 1 >= 0.5;
+      const totalStars = hasHalfStar ? fullStars + 1 : fullStars;
+      let starsHTML = '';
+
+      for (let i = 0; i < fullStars; i++) starsHTML += '<i class="fas fa-star"></i>';
+      if (hasHalfStar) starsHTML += '<i class="fas fa-star-half-alt"></i>';
+      for (let i = totalStars; i < 5; i++) starsHTML += '<i class="far fa-star"></i>';
+
+      return starsHTML;
+    }
+
+    function addToWishlist(courseId) {
+      const token = localStorage.getItem('token');
+      fetch(`http://mazingad-001-site1.ntempurl.com/api/student-courses/favorites/${courseId}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      })
+      .then(res => {
+      if (res.status === 200 || res.status === 201) {
+        Toast.fire({ icon: 'success', title: 'Added to wishlist!' });
+      } else if (res.status === 400) {
+        Toast.fire({ icon: 'info', title: 'Already in wishlist.' });
+      } else if (res.status === 401) {
+        Toast.fire({ icon: 'warning', title: 'Please login first.' });
+      } else {
+        throw new Error(`Error: response status is ${res.status}`);
+      }
+    })
+    .catch(err => {
+      console.error(err);
+      Toast.fire({ icon: 'error', title: 'Something went wrong!' });
+    });
+    }
+
+    function addToCart(courseId) {
+  const token = localStorage.getItem('token');
+  fetch(`http://mazingad-001-site1.ntempurl.com/api/student-courses/cart/${courseId}`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    }
+  })
+  .then(async res => {
+    if (res.ok) {
+      Toast.fire({ icon: 'success', title: 'Added to cart!' });
+    } else if (res.status === 400) {
+      const errorText = await res.text();
+
+      if (errorText.includes("already enrolled")) {
+        Toast.fire({ icon: 'info', title: 'You are already enrolled in this course.' });
+      } else if (errorText.includes("already in cart")) {
+        Toast.fire({ icon: 'info', title: 'Course already in cart.' });
+      } else {
+        Toast.fire({ icon: 'info', title: errorText });
+      }
+    } else if (res.status === 401) {
+      Toast.fire({ icon: 'warning', title: 'Please login first.' });
+    } else {
+      throw new Error(`Unexpected status ${res.status}`);
+    }
+  })
+  .catch(err => {
+    console.error(err);
+    Toast.fire({ icon: 'error', title: 'Something went wrong!' });
+  });
+}
+function loadCSS(href) {
+  return new Promise((resolve, reject) => {
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = href;
+    link.onload = () => resolve();
+    link.onerror = () => reject(`Failed to load CSS: ${href}`);
+    document.head.appendChild(link);
+  });
+}
+
+Promise.all([
+  fetch("navProfile.html")
+    .then(res => res.text())
+    .then(html => {
+      document.getElementById("nav-placeholder").innerHTML = html;
+    }),
+  loadCSS("CSS/nav.css") // تأكد إن nav.css اتحمل
+]).then(() => {
+  document.body.classList.remove("hidden-body"); // ✅ دلوقتي بس نظهر الصفحة
+});
+
+
+  </script>
+</body>
+
+</html>
