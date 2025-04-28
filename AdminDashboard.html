@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Dashboard</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <style>
     * { box-sizing: border-box; }
     body {
@@ -224,184 +225,259 @@
   </main>
 
   <script>
-    const token = localStorage.getItem("token");
-    const user = JSON.parse(localStorage.getItem("user") || "null");
-    if (!token || !user || !user.roles || !user.roles.includes("Admin")) {
-    window.location.href = "unauthorized.html"; // 🚫 مش مسموح له
-  }
-    const headers = {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    };
-    function showSection(section) {
-      ['users-section', 'jobs-section', 'courses-section', 'snippets-section' , 'overview-section'].forEach(id => {
-        document.getElementById(id).style.display = (id === `${section}-section`) ? 'block' : 'none';
-      });
-      document.querySelectorAll("aside a").forEach(link => link.classList.remove("active"));
+ 
+// ✅ دوال SweetAlert
+async function sweetConfirm(message) {
+  const result = await Swal.fire({
+    title: 'Are you sure?',
+    text: message,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#3085d6',
+    cancelButtonColor: '#d33',
+    confirmButtonText: 'Yes',
+    cancelButtonText: 'Cancel'
+  });
+  return result.isConfirmed;
+}
+
+async function sweetAlertSuccess(message) {
+  await Swal.fire({
+    icon: 'success',
+    title: 'Success',
+    text: message,
+    timer: 2000,
+    showConfirmButton: false
+  });
+}
+
+async function sweetAlertError(message) {
+  await Swal.fire({
+    icon: 'error',
+    title: 'Error',
+    text: message
+  });
+}
+
+async function sweetPrompt(title, inputPlaceholder) {
+  const { value: inputValue } = await Swal.fire({
+    title: title,
+    input: 'text',
+    inputPlaceholder: inputPlaceholder,
+    showCancelButton: true,
+    confirmButtonText: 'OK',
+    cancelButtonText: 'Cancel'
+  });
+  return inputValue;
+}
+
+// ✅ كود الإدارة كاملاً بالتعديلات الجديدة
+const token = localStorage.getItem("token");
+const user = JSON.parse(localStorage.getItem("user") || "null");
+if (!token || !user || !user.roles || !user.roles.includes("Admin")) {
+  window.location.href = "unauthorized.html";
+}
+const headers = {
+  'Authorization': `Bearer ${token}`,
+  'Content-Type': 'application/json'
+};
+
+function showSection(section) {
+  ['users-section', 'jobs-section', 'courses-section', 'snippets-section', 'overview-section'].forEach(id => {
+    document.getElementById(id).style.display = (id === `${section}-section`) ? 'block' : 'none';
+  });
+  document.querySelectorAll("aside a").forEach(link => link.classList.remove("active"));
   const targetLink = Array.from(document.querySelectorAll("aside a")).find(a => a.textContent.includes(section.charAt(0).toUpperCase() + section.slice(1)));
   if (targetLink) targetLink.classList.add("active");
-    }
-    function loadOverview() {
-      fetch("http://mazingad-001-site1.ntempurl.com/api/Admin/DashboardOverview", { headers })
-        .then(res => res.json())
-        .then(data => {
-          const cards = document.getElementById("overview-cards");
-          cards.innerHTML = `
-            <div class="card"><h3>Total Courses</h3><span>${data.totalCourses}</span></div>
-            <div class="card"><h3>Total Students</h3><span>${data.totalStudents}</span></div>
-            <div class="card"><h3>Total Instructors</h3><span>${data.totalInstructors}</span></div>
-            <div class="card"><h3>Total Jobs</h3><span>${data.totalJobs}</span></div>
-            <div class="card"><h3>Total Revenue</h3><span>$${data.totalRevenue}</span></div>
-          `;
+}
 
-          const recentCourses = document.getElementById("recent-courses");
-          recentCourses.innerHTML = data.recentCourses.map(c => `
-            <div style="flex: 1 1 250px; background: white; padding: 1rem; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); display: flex; flex-direction: column; align-items: center; text-align: center;">
-              <img src="${c.imageUrl || 'images/default-course.jpg'}" alt="Course Image" style="width: 100%; max-width: 220px; height: 120px; object-fit: cover; border-radius: 6px; margin-bottom: 10px;">
-              <a href="course-details.html?id=${c.id}" style="font-weight: bold; color: #2563eb; font-size: 1.1rem; text-decoration: none;">${c.title}</a>
-              <div style="margin-top: 6px; font-size: 0.9rem; color: #555;">by ${c.instructorName}</div>
-              <div style="font-size: 0.9rem; color: #111;">$${c.price}</div>
-            </div>
-          `).join("");
-          recentCourses.style.display = "flex";
-          recentCourses.style.flexWrap = "wrap";
-          recentCourses.style.gap = "1rem";
+function loadOverview() {
+  fetch("http://mazingad-001-site1.ntempurl.com/api/Admin/DashboardOverview", { headers })
+    .then(res => res.json())
+    .then(data => {
+      const cards = document.getElementById("overview-cards");
+      cards.innerHTML = `
+        <div class="card"><h3>Total Courses</h3><span>${data.totalCourses}</span></div>
+        <div class="card"><h3>Total Students</h3><span>${data.totalStudents}</span></div>
+        <div class="card"><h3>Total Instructors</h3><span>${data.totalInstructors}</span></div>
+        <div class="card"><h3>Total Jobs</h3><span>${data.totalJobs}</span></div>
+        <div class="card"><h3>Total Revenue</h3><span>$${data.totalRevenue}</span></div>
+      `;
 
+      const recentCourses = document.getElementById("recent-courses");
+      recentCourses.innerHTML = data.recentCourses.map(c => `
+        <div style="flex: 1 1 250px; background: white; padding: 1rem; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); display: flex; flex-direction: column; align-items: center; text-align: center;">
+          <img src="${c.imageUrl || 'images/default-course.jpg'}" alt="Course Image" style="width: 100%; max-width: 220px; height: 120px; object-fit: cover; border-radius: 6px; margin-bottom: 10px;">
+          <a href="course-details.html?id=${c.id}" style="font-weight: bold; color: #2563eb; font-size: 1.1rem; text-decoration: none;">${c.title}</a>
+          <div style="margin-top: 6px; font-size: 0.9rem; color: #555;">by ${c.instructorName}</div>
+          <div style="font-size: 0.9rem; color: #111;">$${c.price}</div>
+        </div>
+      `).join("");
+      recentCourses.style.display = "flex";
+      recentCourses.style.flexWrap = "wrap";
+      recentCourses.style.gap = "1rem";
 
-
-          const recentJobs = document.getElementById("recent-jobs");
-          recentJobs.innerHTML = data.recentJobs.map(j => `
-          <div style="flex: 1 1 250px; background: white; padding: 1rem; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
-            <h4 style="margin: 0 0 10px; color: #2563eb;">${j.title}</h4>
-            <p style="margin: 0; font-size: 0.9rem; color: #333;">📅 ${new Date(j.postedAt).toLocaleDateString()}</p>
-            <p style="margin: 5px 0 0; font-size: 0.9rem; color: #555;">✉️ ${j.contactEmail}</p>
-          </div>
-        `).join("");
-        recentJobs.style.display = "flex";
-        recentJobs.style.flexWrap = "wrap";
-        recentJobs.style.gap = "1rem";
-
-        });
-    }
-
-
-    // USERS
-    function loadUsers() {
-      fetch("http://mazingad-001-site1.ntempurl.com/api/Admin/GetUsers", { headers })
-        .then(res => res.json())
-        .then(users => {
-          const tbody = document.querySelector("#user-table tbody");
-          tbody.innerHTML = "";
-          users.forEach(user => {
-            const tr = document.createElement("tr");
-            const rolesArrayEscaped = JSON.stringify(user.userRoles).replace(/"/g, '&quot;');
-            tr.innerHTML = `
-              <td>${user.fullName}</td>
-              <td>${user.userName}</td>
-              <td>${user.userRoles.join(', ')}</td>
-              <td class="role-controls">
-                <select id="role-select-${user.id}">
-                  <option value="Student">Student</option>
-                  <option value="Instructor">Instructor</option>
-                  <option value="Admin">Admin</option>
-                </select>
-                <button class="add" onclick="addRole('${user.id}')">Add Role</button>
-                <button class="edit" onclick='showRemoveRoles("${user.id}", ${rolesArrayEscaped})'>Remove Role</button>
-                <button class="delete" onclick="deleteUser('${user.id}')">Delete</button>
-              </td>`;
-            tbody.appendChild(tr);
-          });
-        });
-    }
-
-    function addRole(userId) {
-      const role = document.getElementById(`role-select-${userId}`).value;
-      fetch(`http://mazingad-001-site1.ntempurl.com/api/Admin/AddRole?userId=${userId}&role=${role}`, {
-        method: 'POST', headers
-      }).then(res => res.ok ? loadUsers() : alert("Failed to add role"));
-    }
-
-    function showRemoveRoles(userId, roles) {
-      const roleToRemove = prompt("Enter role to remove:\n" + roles.join("\n"));
-      if (!roleToRemove) return;
-      fetch(`http://mazingad-001-site1.ntempurl.com/api/Admin/RemoveRole?userId=${userId}&role=${roleToRemove}`, {
-        method: 'POST', headers
-      }).then(res => res.text())
-        .then(msg => {
-          alert("✅ " + msg);
-          loadUsers();
-        });
-    }
-
-    function deleteUser(userId) {
-      if (!confirm("Are you sure you want to delete this user?")) return;
-      fetch(`http://mazingad-001-site1.ntempurl.com/api/Admin/DeleteUser?userId=${userId}`, {
-        method: 'DELETE', headers
-      }).then(res => res.ok ? loadUsers() : alert("Failed to delete user"));
-    }
-
-    // JOBS
-    const jobForm = document.getElementById("job-form");
-
-    function loadJobs() {
-      fetch("http://mazingad-001-site1.ntempurl.com/api/Job", { headers })
-        .then(res => res.json())
-        .then(jobs => {
-          const tbody = document.querySelector("#jobs-table tbody");
-          tbody.innerHTML = "";
-          jobs.forEach(job => {
-            const tr = document.createElement("tr");
-            tr.innerHTML = `
-              <td>${job.title}</td>
-              <td>${job.contactEmail}</td>
-              <td>${new Date(job.postedAt).toLocaleDateString()}</td>
-              <td>
-                <button class="edit" onclick='editJob(${JSON.stringify(job)})'>Edit</button>
-                <button class="delete" onclick='deleteJob(${job.id})'>Delete</button>
-              </td>`;
-            tbody.appendChild(tr);
-          });
-        });
-    }
-
-    function editJob(job) {
-      document.getElementById("job-id").value = job.id;
-      document.getElementById("job-title").value = job.title;
-      document.getElementById("job-content").value = job.content;
-      document.getElementById("job-email").value = job.contactEmail;
-    }
-
-    function deleteJob(id) {
-      if (!confirm("Are you sure you want to delete this job?")) return;
-      fetch(`http://mazingad-001-site1.ntempurl.com/api/Job/${id}`, {
-        method: 'DELETE', headers
-      }).then(res => res.ok ? loadJobs() : alert("Failed to delete job"));
-    }
-
-    jobForm.addEventListener("submit", e => {
-      e.preventDefault();
-      const id = document.getElementById("job-id").value;
-      const payload = {
-        title: document.getElementById("job-title").value,
-        content: document.getElementById("job-content").value,
-        contactEmail: document.getElementById("job-email").value
-      };
-
-      const method = id ? "PUT" : "POST";
-      const url = id ? `http://mazingad-001-site1.ntempurl.com/api/Job/${id}` : "http://mazingad-001-site1.ntempurl.com/api/Job";
-
-      fetch(url, {
-        method,
-        headers,
-        body: JSON.stringify(payload)
-      }).then(res => res.ok ? res.text() : Promise.reject("Failed to save job"))
-        .then(() => {
-          alert("✅ Job saved successfully");
-          jobForm.reset();
-          loadJobs();
-        })
-        .catch(err => alert("❌ " + err));
+      const recentJobs = document.getElementById("recent-jobs");
+      recentJobs.innerHTML = data.recentJobs.map(j => `
+        <div style="flex: 1 1 250px; background: white; padding: 1rem; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+          <h4 style="margin: 0 0 10px; color: #2563eb;">${j.title}</h4>
+          <p style="margin: 0; font-size: 0.9rem; color: #333;">📅 ${new Date(j.postedAt).toLocaleDateString()}</p>
+          <p style="margin: 5px 0 0; font-size: 0.9rem; color: #555;">✉️ ${j.contactEmail}</p>
+        </div>
+      `).join("");
+      recentJobs.style.display = "flex";
+      recentJobs.style.flexWrap = "wrap";
+      recentJobs.style.gap = "1rem";
     });
+}
+
+// ---------- Users ----------
+function loadUsers() {
+  fetch('http://mazingad-001-site1.ntempurl.com/api/Admin/GetUsers', { headers })
+    .then(r => r.json())
+    .then(users => {
+      const tbody = document.querySelector('#user-table tbody');
+      tbody.innerHTML = '';
+      users.forEach(u => {
+        const rolesEsc = JSON.stringify(u.userRoles).replace(/"/g, '&quot;');
+        tbody.insertAdjacentHTML(
+          'beforeend',
+          `<tr>
+            <td>${u.fullName}</td>
+            <td>${u.userName}</td>
+            <td>${u.userRoles.join(', ')}</td>
+            <td class="role-controls">
+              <select id="role-select-${u.id}">
+                <option value="Student">Student</option>
+                <option value="Instructor">Instructor</option>
+                <option value="Admin">Admin</option>
+              </select>
+              <button class="add" onclick="addRole('${u.id}')">Add Role</button>
+              <button class="edit" onclick='showRemoveRoles("${u.id}", ${rolesEsc})'>Remove Role</button>
+              <button class="delete" onclick="deleteUser('${u.id}')">Delete</button>
+            </td>
+          </tr>`
+        );
+      });
+    });
+}
+
+function addRole(userId) {
+  const role = document.getElementById(`role-select-${userId}`).value;
+  fetch(`http://mazingad-001-site1.ntempurl.com/api/Admin/AddRole?userId=${userId}&role=${role}`, {
+    method: 'POST',
+    headers
+  }).then(res => (res.ok ? loadUsers() : sweetAlertError('Failed to add role')));
+}
+
+async function showRemoveRoles(userId, roles) {
+  const roleToRemove = await sweetPrompt('Enter role to remove', roles.join('\n'));
+  if (!roleToRemove) return;
+  fetch(`http://mazingad-001-site1.ntempurl.com/api/Admin/RemoveRole?userId=${userId}&role=${roleToRemove}`, {
+    method: 'POST',
+    headers
+  })
+    .then(r => r.text())
+    .then(msg => {
+      sweetAlertSuccess(msg);
+      loadUsers();
+    })
+    .catch(() => sweetAlertError('Failed to remove role'));
+}
+
+async function deleteUser(userId) {
+  if (!(await sweetConfirm('Are you sure you want to delete this user?'))) return;
+  
+  fetch(`http://mazingad-001-site1.ntempurl.com/api/Admin/DeleteUser?userId=${userId}`, {
+    method: 'DELETE',
+    headers,
+    credentials: 'include' 
+  })
+  .then(async res => {
+    if (res.ok) {
+      await sweetAlertSuccess('User deleted successfully');
+      loadUsers();
+    } else if (res.status === 500) {
+      await sweetAlertError('Cannot delete user: user has associated courses or payments.');
+    } else {
+      const errorText = await res.text();
+      await sweetAlertError(errorText || 'Failed to delete user');
+    }
+  })
+  .catch(() => {
+    sweetAlertError('Network error. Please try again.');
+  });
+}
+
+
+// ---------- Jobs ----------
+const jobForm = document.getElementById('job-form');
+
+function loadJobs() {
+  fetch('http://mazingad-001-site1.ntempurl.com/api/Job', { headers })
+    .then(r => r.json())
+    .then(jobs => {
+      const tbody = document.querySelector('#jobs-table tbody');
+      tbody.innerHTML = '';
+      jobs.forEach(j => {
+        tbody.insertAdjacentHTML(
+          'beforeend',
+          `<tr>
+            <td>${j.title}</td>
+            <td>${j.contactEmail}</td>
+            <td>${new Date(j.postedAt).toLocaleDateString()}</td>
+            <td>
+              <button class="edit" onclick='editJob(${JSON.stringify(j)})'>Edit</button>
+              <button class="delete" onclick='deleteJob(${j.id})'>Delete</button>
+            </td>
+          </tr>`
+        );
+      });
+    });
+}
+
+function editJob(job) {
+  document.getElementById('job-id').value = job.id;
+  document.getElementById('job-title').value = job.title;
+  document.getElementById('job-content').value = job.content;
+  document.getElementById('job-email').value = job.contactEmail;
+}
+
+async function deleteJob(id) {
+  if (!(await sweetConfirm('Are you sure you want to delete this job?'))) return;
+  fetch(`http://mazingad-001-site1.ntempurl.com/api/Job/${id}`, {
+    method: 'DELETE',
+    headers
+  }).then(res => (res.ok ? loadJobs() : sweetAlertError('Failed to delete job')));
+}
+
+jobForm.addEventListener('submit', e => {
+  e.preventDefault();
+  const id = document.getElementById('job-id').value;
+  const payload = {
+    title: document.getElementById('job-title').value,
+    content: document.getElementById('job-content').value,
+    contactEmail: document.getElementById('job-email').value
+  };
+  const method = id ? 'PUT' : 'POST';
+  const url = id
+    ? `http://mazingad-001-site1.ntempurl.com/api/Job/${id}`
+    : 'http://mazingad-001-site1.ntempurl.com/api/Job';
+  fetch(url, {
+    method,
+    headers,
+    body: JSON.stringify(payload)
+  })
+    .then(res => (res.ok ? res.text() : Promise.reject()))
+    .then(() => {
+      sweetAlertSuccess('Job saved successfully');
+      jobForm.reset();
+      loadJobs();
+    })
+    .catch(() => sweetAlertError('Failed to save job'));
+});
+
+// ---------- Courses ----------
 
     // COURSES
     function loadCourses() {
@@ -425,12 +501,31 @@
         });
     }
 
-    function deleteCourse(id) {
-      if (!confirm("Are you sure you want to delete this course?")) return;
-      fetch(`http://mazingad-001-site1.ntempurl.com/api/Admin/DeleteCourse?courseId=${id}`, {
-        method: 'DELETE', headers
-      }).then(res => res.ok ? loadCourses() : alert("Failed to delete course"));
+    async function deleteCourse(id) {
+  if (!(await sweetConfirm('Are you sure you want to delete this course?'))) return;
+  
+  fetch(`http://mazingad-001-site1.ntempurl.com/api/Admin/DeleteCourse?courseId=${id}`, {
+    method: 'DELETE',
+    headers,
+    credentials: 'include' 
+  })
+  .then(async res => {
+    if (res.ok) {
+      await sweetAlertSuccess('Course deleted successfully');
+      loadCourses();
+    } else if (res.status === 500) {
+      await sweetAlertError('Cannot delete course: it has active enrollments or payments.');
+    } else {
+      const errorText = await res.text();
+      await sweetAlertError(errorText || 'Failed to delete course');
     }
+  })
+  .catch(() => {
+    sweetAlertError('Network error. Please try again.');
+  });
+}
+
+
     function loadSnippets() {
       fetch("http://mazingad-001-site1.ntempurl.com/api/Admin/GetSnippets", { headers })
         .then(res => res.json())
@@ -452,12 +547,12 @@
         });
     }
 
-    function deleteSnippet(id) {
-      if (!confirm("Are you sure you want to delete this snippet?")) return;
-      fetch(`http://mazingad-001-site1.ntempurl.com/api/Admin/DeleteSnippet?snippetId=${id}`, {
-        method: 'DELETE', headers
-      }).then(res => res.ok ? loadSnippets() : alert("Failed to delete snippet"));
-    }
+    async function deleteSnippet(id) {
+  if (!(await sweetConfirm('Are you sure you want to delete this snippet?'))) return;
+  fetch(`http://mazingad-001-site1.ntempurl.com/api/Admin/DeleteSnippet?snippetId=${id}`, {
+    method: 'DELETE', headers
+  }).then(res => res.ok ? loadSnippets() : sweetAlertError('Failed to delete snippet'));
+}
 
     loadOverview();
     loadUsers();

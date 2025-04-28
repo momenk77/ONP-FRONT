@@ -85,7 +85,6 @@
       <tr>
         <th>Image</th>
         <th>Title</th>
-        <th>Category</th>
         <th>Price</th>
         <th>Students</th>
         <th>Rating</th>
@@ -101,7 +100,7 @@
     const headers = { 'Authorization': `Bearer ${token}` };
 
     function loadCourses() {
-      fetch("http://mazingad-001-site1.ntempurl.com/api/Course/by-category", { headers })
+      fetch("http://mazingad-001-site1.ntempurl.com/api/Instructor/my-courses", { headers })
         .then(res => res.json())
         .then(data => {
           const tbody = document.querySelector("#course-table tbody");
@@ -109,13 +108,13 @@
 
           data.forEach(course => {
             const row = document.createElement("tr");
+            console.log(course)
             row.innerHTML = `
-              <td><img src="${course.imageUrl || 'images/default.png'}" width="60" height="40" style="object-fit:cover; border-radius:6px;"/></td>
+              <td><img src="${course.imageUrl || 'images/html.webp'}" width="60" height="40" style="object-fit:cover; border-radius:6px;"/></td>
               <td>${course.title}</td>
-              <td>${course.categoryName}</td>
               <td>${course.price} EGP</td>
-              <td>${course.enrolledStudents}</td>
-              <td>${course.averageRating}</td>
+              <td>${course.studentCount}</td>
+              <td>${Math.floor(course.averageRating)}</td>
               <td class="actions">
                 <button class="btn edit-btn" onclick="editCourse(${course.id})">Edit</button>
                 <button class="btn delete-btn" onclick="deleteCourse(${course.id})">Delete</button>

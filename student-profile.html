@@ -85,6 +85,12 @@
       padding: 1rem;
       font-size: 0.85rem;
     }
+    input[readonly] {
+  background-color: #f0f0f0;
+  color: #555;
+  cursor: not-allowed;
+}
+
   </style>
 </head>
 
@@ -121,7 +127,7 @@
         <input type="text" id="name" required />
 
         <label for="email">Email:</label>
-        <input type="email" id="email" required />
+        <input type="email" id="email" required readonly />
 
         <label for="currentPassword">Current Password:</label>
         <input type="password" id="currentPassword" placeholder="Enter current password" />
@@ -224,8 +230,16 @@ document.getElementById("profile-form").addEventListener("submit", async functio
         showConfirmButton: false,
         timer: 1800
       });
+      const storedUser = JSON.parse(localStorage.getItem("user"));
+      storedUser.fullName = fullName;
+      localStorage.setItem("user", JSON.stringify(storedUser));
       currentPasswordInput.value = "";
       newPasswordInput.value = "";
+      
+      setTimeout(() => {
+    location.reload();
+  }, 1800); // 
+      
     } else {
       const err = await res.json().catch(() => ({ message: "Something went wrong." }));
       Swal.fire({
@@ -258,7 +272,12 @@ fetch("http://mazingad-001-site1.ntempurl.com/api/Enrollment/my-courses", { head
 
     courses.forEach(course => {
       const li = document.createElement("li");
-      li.innerHTML = `<i class="fas fa-book-open"></i> ${course.title}`;
+      li.innerHTML = `
+        <a href="course-details.html?id=${course. courseId}" style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 0.5rem;">
+          <i class="fas fa-book-open"></i> 
+          <span>${course.title}</span>
+        </a>
+      `;
       courseList.appendChild(li);
     });
   })

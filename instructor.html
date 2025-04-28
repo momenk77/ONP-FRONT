@@ -130,6 +130,11 @@
   font-size: 0.95rem;
   color: #4b5563;
 }
+input[readonly] {
+  background-color: #f0f0f0;
+  color: #555;
+  cursor: not-allowed;
+}
 
   </style>
 
@@ -191,7 +196,7 @@
         <h3><i class="fas fa-user-edit"></i> Update Profile</h3>
         <form id="update-form">
           <input type="text" id="fullName" placeholder="Full Name" required style="width:100%; padding:0.75rem; margin-bottom:1rem;"/>
-          <input type="email" id="email" placeholder="Email" required style="width:100%; padding:0.75rem; margin-bottom:1rem;"/>
+          <input type="email" id="email" placeholder="Email" required readonly style="width:100%; padding:0.75rem; margin-bottom:1rem;"/>
           <input type="password" id="Oldpassword" placeholder="Current Password" style="width:100%; padding:0.75rem; margin-bottom:1rem;"/>
           <input type="password" id="password" placeholder="New Password" style="width:100%; padding:0.75rem; margin-bottom:1rem;"/>
           <div style="margin-bottom: 1rem;">
@@ -337,8 +342,16 @@
         showConfirmButton: false,
         timer: 2000
       });
+      const storedUser = JSON.parse(localStorage.getItem("user"));
+  if (storedUser) {
+    storedUser.fullName = fullName;
+    localStorage.setItem("user", JSON.stringify(storedUser));
+  }
       document.getElementById("Oldpassword").value = "";
       document.getElementById("password").value = "";
+      setTimeout(() => {
+    location.reload();
+  }, 2000);
     } else {
       const err = await res.json().catch(() => ({ message: "Something went wrong." }));
       Swal.fire({
