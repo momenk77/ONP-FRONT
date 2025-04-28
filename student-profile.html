@@ -166,7 +166,7 @@ const currentPasswordInput = document.getElementById("currentPassword"); // 🆕
 const newPasswordInput = document.getElementById("password");
 
 // ✅ Load user profile
-fetch("http://mazingad-001-site1.ntempurl.com/api/Student/dashboard", { headers })
+fetch("https://mazingad-001-site1.ntempurl.com/api/Student/dashboard", { headers })
   .then(res => res.json())
   .then(user => {
     nameInput.value = user.fullName;
@@ -215,7 +215,7 @@ document.getElementById("profile-form").addEventListener("submit", async functio
   Swal.showLoading();
 
   try {
-    const res = await fetch("http://mazingad-001-site1.ntempurl.com/api/Student/profile", {
+    const res = await fetch("https://mazingad-001-site1.ntempurl.com/api/Student/profile", {
       method: "PUT",
       headers,
       body: JSON.stringify(updatedUser)
@@ -259,7 +259,7 @@ document.getElementById("profile-form").addEventListener("submit", async functio
 });
 
 // ✅ Load student's enrolled courses
-fetch("http://mazingad-001-site1.ntempurl.com/api/Enrollment/my-courses", { headers })
+fetch("https://mazingad-001-site1.ntempurl.com/api/Enrollment/my-courses", { headers })
   .then(res => res.json())
   .then(courses => {
     const courseList = document.getElementById("my-courses-list");

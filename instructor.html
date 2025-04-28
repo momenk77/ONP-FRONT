@@ -235,7 +235,7 @@ input[readonly] {
   
     // ✅ دالة تحميل سجل السحب - برا عشان تكون متاحة في كل السكريبت
     async function loadWithdrawalHistory() {
-      const res = await fetch("http://mazingad-001-site1.ntempurl.com/api/Instructor/withdrawals", { headers });
+      const res = await fetch("https://mazingad-001-site1.ntempurl.com/api/Instructor/withdrawals", { headers });
       const withdrawals = await res.json();
   
       const list = document.getElementById("withdrawal-history");
@@ -252,7 +252,7 @@ input[readonly] {
     }
   
     // ✅ تحميل بيانات الداشبورد
-    fetch("http://mazingad-001-site1.ntempurl.com/api/Instructor/dashboard", { headers })
+    fetch("https://mazingad-001-site1.ntempurl.com/api/Instructor/dashboard", { headers })
       .then(res => res.json())
       .then(data => {
         document.getElementById("total-earnings").textContent = `$${data.totalEarnings.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
@@ -310,7 +310,7 @@ input[readonly] {
       const formData = new FormData();
       formData.append("file", profileImage);
 
-      const uploadRes = await fetch("http://mazingad-001-site1.ntempurl.com/api/Instructor/upload-profile-image", {
+      const uploadRes = await fetch("https://mazingad-001-site1.ntempurl.com/api/Instructor/upload-profile-image", {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
         body: formData
@@ -327,7 +327,7 @@ input[readonly] {
       }
     }
 
-    const res = await fetch("http://mazingad-001-site1.ntempurl.com/api/Instructor/profile", {
+    const res = await fetch("https://mazingad-001-site1.ntempurl.com/api/Instructor/profile", {
       method: "PUT",
       headers,
       body: JSON.stringify(payload)
@@ -391,7 +391,7 @@ input[readonly] {
   loader.style.display = "flex";
 
   try {
-    const res = await fetch("http://mazingad-001-site1.ntempurl.com/api/Instructor/withdraw", {
+    const res = await fetch("https://mazingad-001-site1.ntempurl.com/api/Instructor/withdraw", {
       method: "POST",
       headers,
       body: JSON.stringify({ amount, payPalEmail: email })
@@ -434,7 +434,7 @@ input[readonly] {
 
 
     async function downloadWithdrawalHistoryAsExcel() {
-  const res = await fetch("http://mazingad-001-site1.ntempurl.com/api/Instructor/withdrawals", { headers });
+  const res = await fetch("https://mazingad-001-site1.ntempurl.com/api/Instructor/withdrawals", { headers });
   const withdrawals = await res.json();
 
   const worksheetData = withdrawals.map((w, index) => ({

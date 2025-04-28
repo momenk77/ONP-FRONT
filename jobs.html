@@ -125,7 +125,7 @@
     function loadJobs() {
       const search = document.getElementById("search").value;
       const lastDays = document.getElementById("lastDays").value;
-      let url = `http://mazingad-001-site1.ntempurl.com/api/Job?`;
+      let url = `https://mazingad-001-site1.ntempurl.com/api/Job?`;
 
       if (search) url += `search=${search}&`;
       if (lastDays) url += `lastDays=${lastDays}`;
@@ -157,7 +157,7 @@
     }
 
     function trackJob(jobId) {
-  fetch(`http://mazingad-001-site1.ntempurl.com/api/Job/${jobId}/track`, {
+  fetch(`https://mazingad-001-site1.ntempurl.com/api/Job/${jobId}/track`, {
     method: "POST",
     headers: {
       'Authorization': `Bearer ${token}`,

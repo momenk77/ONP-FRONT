@@ -101,7 +101,7 @@
   };
 
   function loadMySnippets() {
-    fetch("http://mazingad-001-site1.ntempurl.com/api/Snippet", { headers })
+    fetch("https://mazingad-001-site1.ntempurl.com/api/Snippet", { headers })
       .then(res => res.json())
       .then(snippets => {
         const container = document.getElementById("snippets-container");
@@ -144,7 +144,7 @@
       confirmButtonText: 'Yes, delete it!'
     }).then((result) => {
       if (result.isConfirmed) {
-        fetch(`http://mazingad-001-site1.ntempurl.com/api/Snippet/${id}`, {
+        fetch(`https://mazingad-001-site1.ntempurl.com/api/Snippet/${id}`, {
           method: "DELETE",
           headers
         })

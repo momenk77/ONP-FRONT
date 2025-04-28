@@ -93,7 +93,7 @@
     };
 
     function loadTrackedJobs() {
-      fetch("http://mazingad-001-site1.ntempurl.com/api/Job/my-tracked", { headers })
+      fetch("https://mazingad-001-site1.ntempurl.com/api/Job/my-tracked", { headers })
         .then(res => res.json())
         .then(jobs => {
           const container = document.getElementById("job-container");
@@ -132,7 +132,7 @@
     confirmButtonText: 'Yes, untrack it'
   }).then((result) => {
     if (result.isConfirmed) {
-      fetch(`http://mazingad-001-site1.ntempurl.com/api/Job/untrack/${id}`, {
+      fetch(`https://mazingad-001-site1.ntempurl.com/api/Job/untrack/${id}`, {
         method: "DELETE",
         headers
       })

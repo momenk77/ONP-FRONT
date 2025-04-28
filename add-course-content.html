@@ -99,14 +99,14 @@
     const token = localStorage.getItem("token");
     const headers = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
     
-    fetch(`http://mazingad-001-site1.ntempurl.com/api/Course/${courseId}/preview`)
+    fetch(`https://mazingad-001-site1.ntempurl.com/api/Course/${courseId}/preview`)
       .then(res => res.json())
       .then(data => {
         document.getElementById("course-title").textContent = `Course: ${data.title}`;
       });
     
     function loadContents() {
-      fetch(`http://mazingad-001-site1.ntempurl.com/api/courses/${courseId}/content`, { headers })
+      fetch(`https://mazingad-001-site1.ntempurl.com/api/courses/${courseId}/content`, { headers })
         .then(res => res.json())
         .then(data => {
           const list = document.getElementById("content-list");
@@ -165,7 +165,7 @@
         confirmButtonText: 'Yes, delete it!'
       }).then((result) => {
         if (result.isConfirmed) {
-          fetch(`http://mazingad-001-site1.ntempurl.com/api/courses/${courseId}/content/${id}`, {
+          fetch(`https://mazingad-001-site1.ntempurl.com/api/courses/${courseId}/content/${id}`, {
             method: "DELETE",
             headers
           })
@@ -223,8 +223,8 @@
   };
 
   const url = contentId
-    ? `http://mazingad-001-site1.ntempurl.com/api/courses/${courseId}/content/${contentId}`
-    : `http://mazingad-001-site1.ntempurl.com/api/courses/${courseId}/content`;
+    ? `https://mazingad-001-site1.ntempurl.com/api/courses/${courseId}/content/${contentId}`
+    : `https://mazingad-001-site1.ntempurl.com/api/courses/${courseId}/content`;
 
   try {
     const res = await fetch(url, {
