@@ -427,21 +427,44 @@
   function showLesson(index) {
   const lesson = contents[index];
   console.log(lesson)
-  selectedLessonId = lesson.id; // ✅ استخدم Order بدل Id
+  selectedLessonId = lesson.id; 
 
   document.querySelectorAll("#lesson-list li").forEach((li, i) => {
     li.classList.toggle("active", i === index);
   });
 
-  document.getElementById("video-section").style.display = lesson.videoUrl ? "block" : "none";
-  document.getElementById("video-player").src = lesson.videoUrl || "";
+  const videoSection = document.getElementById("video-section");
+const videoPlayer = document.getElementById("video-player");
+const iframe = document.getElementById("live-preview");
+
+if (lesson.videoUrl) {
+  videoSection.style.display = "block";
+
+  if (lesson.videoUrl.includes("youtube.com") || lesson.videoUrl.includes("youtu.be")) {
+    // لو فيديو من يوتيوب
+    videoPlayer.style.display = "none";
+    iframe.style.display = "block";
+    iframe.src = lesson.videoUrl.replace("/watch?v=", "/embed/");
+    iframe.width = "100%";
+    iframe.height = "400px";
+  } else {
+    // لو فيديو عادي
+    iframe.style.display = "none";
+    videoPlayer.style.display = "block";
+    videoPlayer.src = lesson.videoUrl;
+  }
+} else {
+  videoSection.style.display = "none";
+  videoPlayer.style.display = "none";
+  iframe.style.display = "none";
+}
+
 
   document.getElementById("text-section").style.display = lesson.textContent ? "block" : "none";
   document.getElementById("text-content").textContent = lesson.textContent || "";
 
   const codeContainer = document.getElementById("code-snippets-container");
   codeContainer.innerHTML = "";
-  const iframe = document.getElementById("live-preview");
 
   if (lesson.lessonCodes?.length) {
     lesson.lessonCodes.forEach((code, idx) => {
