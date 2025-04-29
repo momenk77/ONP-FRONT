@@ -173,7 +173,7 @@
           div.className = "cart-item";
           div.innerHTML = `
             <span class="cart-item-title">${item.title} <br/><small>by ${item.instructorName}</small></span>
-            <span class="price">$${item.price?.toFixed(2) ?? 0}</span>
+            <span class="price">KWD${item.price?.toFixed(2) ?? 0}</span>
             <button class="remove-btn" title="Remove"><i class="fas fa-trash"></i></button>
           `;
   
@@ -184,7 +184,7 @@
         summary.style.display = "block";
         summary.innerHTML = `
           <strong>Total Items:</strong> ${data.length} <br/>
-          <strong>Total Price:</strong> $${total.toFixed(2)}
+          <strong>Total Price:</strong> KWD${total.toFixed(2)}
         `;
   
       } catch (err) {
