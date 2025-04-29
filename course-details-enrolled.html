@@ -479,10 +479,10 @@ if (lesson.videoUrl) {
       codeContainer.appendChild(label);
       codeContainer.appendChild(pre);
       if (idx === 0 && code.language.toLowerCase().includes("html")) {
-        iframe.srcdoc = code.code;
-        iframe.style.display = "block";
+        iframePreview.srcdoc = code.code;
+        iframePreview.style.display = "block";
       } else {
-        iframe.style.display = "none";
+        iframePreview.style.display = "none";
       }
     });
     document.getElementById("code-section").style.display = "block";
