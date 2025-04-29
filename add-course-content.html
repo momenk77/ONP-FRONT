@@ -111,17 +111,18 @@
         .then(data => {
           const list = document.getElementById("content-list");
           list.innerHTML = "<h2>Course Content</h2>" + data.map(item => `
-            <div class="content-item" data-id="${item.id}" data-title="${item.title}" data-order="${item.order}" data-video="${item.videoUrl || ''}" data-text="${item.textContent || ''}" data-lessonCodes='${JSON.stringify(item.lessonCodes || [])}'>
-              <div class="content-actions">
-                <button class="edit" onclick="editContent(${item.id})">Edit</button>
-                <button onclick="deleteContent(${item.id})">Delete</button>
-              </div>
-              <strong>${item.order}. ${item.title}</strong><br>
-              Type: ${item.contentType}<br>
-              ${item.videoUrl ? 'Video: ' + item.videoUrl + '<br>' : ''}
-              ${item.textContent ? 'Text: ' + item.textContent + '<br>' : ''}
+          <div class="content-item" data-id="${item.id}" data-title="${item.title}" data-order="${item.order}" data-video="${item.videoUrl || ''}" data-text="${item.textContent || ''}" data-lessonCodes='${JSON.stringify(item.lessonCodes || [])}'>
+            <div class="content-actions">
+              <button class="edit" onclick="editContent(${item.id})">Edit</button>
+              <button onclick="deleteContent(${item.id})">Delete</button>
             </div>
-          `).join('');
+            <strong>${item.order}. ${item.title}</strong><br>
+            Type: ${item.contentType}<br>
+            ${item.videoUrl ? `<iframe width="100%" height="315" src="${item.videoUrl}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe><br>` : ''}
+            ${item.textContent ? 'Text: ' + item.textContent + '<br>' : ''}
+          </div>
+        `).join('');
+
         });
     }
     
@@ -265,6 +266,16 @@
 
   } catch (err) {
     Swal.fire({ icon: 'error', title: 'Error!', html: err.message });
+  }
+});
+
+// 🔥 Automatically convert YouTube URL to Embed format
+document.getElementById("video-url").addEventListener("blur", function () {
+  let url = this.value.trim();
+  if (url.includes("watch?v=")) {
+    const videoId = url.split("watch?v=")[1].split("&")[0];
+    const embedUrl = `https://www.youtube.com/embed/${videoId}`;
+    this.value = embedUrl;
   }
 });
 

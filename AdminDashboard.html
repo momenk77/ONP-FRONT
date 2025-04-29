@@ -301,7 +301,7 @@ function loadOverview() {
         <div class="card"><h3>Total Students</h3><span>${data.totalStudents}</span></div>
         <div class="card"><h3>Total Instructors</h3><span>${data.totalInstructors}</span></div>
         <div class="card"><h3>Total Jobs</h3><span>${data.totalJobs}</span></div>
-        <div class="card"><h3>Total Revenue</h3><span>$${data.totalRevenue}</span></div>
+        <div class="card"><h3>Total Revenue</h3><span>KWD ${data.totalRevenue}</span></div>
       `;
 
       const recentCourses = document.getElementById("recent-courses");
@@ -310,7 +310,7 @@ function loadOverview() {
           <img src="${c.imageUrl || 'images/default-course.jpg'}" alt="Course Image" style="width: 100%; max-width: 220px; height: 120px; object-fit: cover; border-radius: 6px; margin-bottom: 10px;">
           <a href="course-details.html?id=${c.id}" style="font-weight: bold; color: #2563eb; font-size: 1.1rem; text-decoration: none;">${c.title}</a>
           <div style="margin-top: 6px; font-size: 0.9rem; color: #555;">by ${c.instructorName}</div>
-          <div style="font-size: 0.9rem; color: #111;">$${c.price}</div>
+          <div style="font-size: 0.9rem; color: #111;">KWD ${c.price}</div>
         </div>
       `).join("");
       recentCourses.style.display = "flex";

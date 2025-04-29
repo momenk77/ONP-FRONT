@@ -161,7 +161,7 @@ input[readonly] {
     <div id="dashboard" class="dashboard-section">
       <div class="dashboard-card" style="text-align: center;">
         <h3><i class="fas fa-money-bill-wave"></i> Total Earnings</h3>
-        <p id="total-earnings" style="font-size: 2rem; font-weight: bold; color: #16a34a; margin-top: 1rem;">$0.00</p>
+        <p id="total-earnings" style="font-size: 2rem; font-weight: bold; color: #16a34a; margin-top: 1rem;">KWD 0.00</p>
       </div>
       <div class="dashboard-card" style="text-align: center;">
         <h3><i class="fab fa-paypal"></i> Withdraw Earnings</h3>
@@ -244,7 +244,7 @@ input[readonly] {
       withdrawals.forEach(w => {
         const item = document.createElement("li");
         item.innerHTML = `
-          <strong>$${w.amount.toFixed(2)}</strong> to ${w.payPalEmail} 
+          <strong>KWD ${w.amount.toFixed(2)}</strong> to ${w.payPalEmail} 
           <br><small>${new Date(w.withdrawnAt).toLocaleString()}</small>
         `;
         list.appendChild(item);
@@ -255,7 +255,7 @@ input[readonly] {
     fetch("https://mazingad-001-site1.ntempurl.com/api/Instructor/dashboard", { headers })
       .then(res => res.json())
       .then(data => {
-        document.getElementById("total-earnings").textContent = `$${data.totalEarnings.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
+        document.getElementById("total-earnings").textContent = `KWD ${data.totalEarnings.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
         document.getElementById("fullName").value = data.fullName;
         document.getElementById("email").value = data.email;
   
@@ -269,7 +269,7 @@ input[readonly] {
             <h4>${course.title}</h4>
             <p><strong>Students:</strong> ${course.studentCount}</p>
             <p><strong>Rating:</strong> ${course.averageRating} ⭐</p>
-            <p><strong>Revenue:</strong> $${course.totalRevenue.toFixed(2)}</p>
+            <p><strong>Revenue:</strong> KWD ${course.totalRevenue.toFixed(2)}</p>
           `;
           list.appendChild(div);
         });
@@ -404,7 +404,7 @@ input[readonly] {
       Swal.fire({
         icon: 'success',
         title: 'Withdrawal Successful!',
-        text: data.message,
+        text: "",
         showConfirmButton: false,
         timer: 2000
       });
@@ -439,7 +439,7 @@ input[readonly] {
 
   const worksheetData = withdrawals.map((w, index) => ({
     "#": index + 1,
-    "Amount": `$${w.amount.toFixed(2)}`,
+    "Amount": `KWD ${w.amount.toFixed(2)}`,
     "PayPal Email": w.payPalEmail,
     "Date": new Date(w.withdrawnAt).toLocaleString()
   }));

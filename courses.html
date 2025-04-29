@@ -241,7 +241,7 @@
             <span>Instructor: ${course.instructorName}</span>
             <div class="stars">${generateStars(course.averageRating ?? 0)}</div>
             <span>Students: ${course.enrolledStudents ?? 0}</span>
-            <span>Price: ${course.price ?? 0}</span>
+            <span>Price: ${course.price ?? 0} KWD</span>
             <div class="card-actions">
               <button class="icon-btn" title="Add to Wishlist" onclick="event.stopPropagation(); addToWishlist(${course.id})">
                 <i class="fas fa-heart"></i>
