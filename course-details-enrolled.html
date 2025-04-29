@@ -445,7 +445,9 @@ if (lesson.videoUrl) {
     // لو فيديو من يوتيوب
     videoPlayer.style.display = "none";
     youtubeFrame.style.display = "block";
-    youtubeFrame.src = lesson.videoUrl.replace("/watch?v=", "/embed/");
+    let embedUrl = lesson.videoUrl.replace("/watch?v=", "/embed/");
+    embedUrl += "?controls=1&modestbranding=1&rel=0&fs=1"; 
+    iframe.src = embedUrl;
     youtubeFrame.width = "100%";
     youtubeFrame.height = "400px";
   } else {
