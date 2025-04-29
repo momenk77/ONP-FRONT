@@ -348,10 +348,18 @@ Promise.all([
     .then(res => res.text())
     .then(html => {
       document.getElementById("nav-placeholder").innerHTML = html;
+      const storedUser = localStorage.getItem("user");
+      if (storedUser) {
+        const user = JSON.parse(storedUser);
+        if (user.roles[0] !== "Instructor" && user.roles[0] !== "Admin") {
+          document.getElementById("cart-icon")?.style.setProperty("display", "inline-block");
+          document.getElementById("wishlist-icon")?.style.setProperty("display", "inline-block");
+        }
+      }
     }),
   loadCSS("CSS/nav.css") // تأكد إن nav.css اتحمل
 ]).then(() => {
-  document.body.classList.remove("hidden-body"); // ✅ دلوقتي بس نظهر الصفحة
+  document.body.classList.remove("hidden-body"); //  دلوقتي بس نظهر الصفحة
 });
 
 

@@ -192,6 +192,12 @@
           <li><a href="mailto:momenkandil72@gmail.com"><i class="fas fa-envelope"></i> momenkandil72@gmail.com</a></li>
         </ul>
       </li>
+      <li>
+        <a href="cart.html" id="cart-icon" class="nav-link" style="display: none;"><i class="fas fa-shopping-cart"></i> Cart</a>
+      </li>
+      <li>
+        <a href="wishlist.html" id="wishlist-icon" class="nav-link" style="display: none;"><i class="fas fa-heart"></i> Wishlist</a>
+      </li>
     </ul>
   </nav>
 
@@ -325,6 +331,16 @@
     searchInput.addEventListener("input", fetchSnippets);
     languageSelect.addEventListener("change", fetchSnippets);
     fetchSnippets();
+    document.addEventListener("DOMContentLoaded", () => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      const user = JSON.parse(storedUser);
+      if (user.roles[0] !== "Instructor" && user.roles[0] !== "Admin") {
+        document.getElementById("cart-icon")?.style.setProperty("display", "inline-block");
+        document.getElementById("wishlist-icon")?.style.setProperty("display", "inline-block");
+      }
+    }
+  });
   </script>
 </body>
 </html>
