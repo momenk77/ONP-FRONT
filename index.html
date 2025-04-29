@@ -97,11 +97,11 @@
       if (storedUser) {
         const user = JSON.parse(storedUser);
   
-        // ✅ نخفي login/signup بعد تحميل الـ nav
+        //  نخفي login/signup بعد تحميل الـ nav
         document.getElementById("login-link")?.style.setProperty("display", "none");
         document.getElementById("signup-link")?.style.setProperty("display", "none");
   
-        // ✅ تغيير لينك البروفايل حسب الدور
+        //  تغيير لينك البروفايل حسب الدور
         const profileLink = document.querySelector("a[href='student-profile.html']");
         if (user.roles.includes("Instructor")) {
           profileLink.href = "instructor.html";
@@ -111,15 +111,24 @@
 
 
 
-        // ✅ نعرض صورة البروفايل
+        if (user.roles.includes("Instructor")) {
+          const instructorDashboardItem = document.createElement("li");
+          instructorDashboardItem.innerHTML = `
+            <a href="manage-courses-dashboard.html">
+              <i class="fas fa-chalkboard-teacher"></i> Manage Courses
+            </a>`;
+          document.getElementById("logout-btn-sidebar")?.parentElement?.before(instructorDashboardItem);
+        }
+
+        //  نعرض صورة البروفايل
         document.getElementById("profile-sidebar-toggle")?.style.setProperty("display", "inline-block");
         document.getElementById("nav-avatar").src = user.profileImageUrl || "images/avatar.jpg";
   
-        // ✅ نعرض بيانات المستخدم في السايدبار
+        //  نعرض بيانات المستخدم في السايدبار
         document.getElementById("sidebar-name").textContent = user.fullName || user.email;
         document.getElementById("sidebar-avatar").src = user.profileImageUrl || "images/avatar.jpg";
   
-        // ✅ نعرض cart/wishlist للطالب فقط
+        //  نعرض cart/wishlist للطالب فقط
         if (user.roles[0] !== "Instructor" && user.roles[0] !== "Admin") {
           document.getElementById("cart-icon")?.style.setProperty("display", "inline-block");
           document.getElementById("wishlist-icon")?.style.setProperty("display", "inline-block");
@@ -133,7 +142,7 @@
     const profileLink = document.querySelector("a[href='student-profile.html']")?.parentElement;
     profileLink?.style.setProperty("display", "none");
     }
-            // ✅ إخفاء My Courses و Tracked Jobs للمحاضر
+            //  إخفاء My Courses و Tracked Jobs للمحاضر
             if (user.roles[0] === "Instructor" || user.roles[0] === "Admin") {
               const myCoursesLink = document.querySelector("a[href='student-courses.html']")?.parentElement;
       const trackedJobsLink = document.querySelector("a[href='Tracked-jobs-page.html']")?.parentElement;
