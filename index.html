@@ -107,6 +107,13 @@
           profileLink.href = "instructor.html";
         } else if (user.roles.includes("Admin")) {
           profileLink.href = "AdminDashboard.html";
+          
+        }
+        const myProfileLi = Array.from(document.querySelectorAll(".profile-links li"))
+      .find(li => li.textContent.includes("My Profile"));
+
+        if (user.roles.includes("Admin") && myProfileLi) {
+          myProfileLi.style.display = "none";
         }
 
 
