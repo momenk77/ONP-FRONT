@@ -447,7 +447,7 @@ if (lesson.videoUrl) {
     youtubeFrame.style.display = "block";
     let embedUrl = lesson.videoUrl.replace("/watch?v=", "/embed/");
     embedUrl += "?controls=1&modestbranding=1&rel=0&fs=1"; 
-    iframe.src = embedUrl;
+    youtubeFrame.src = embedUrl;
     youtubeFrame.width = "100%";
     youtubeFrame.height = "400px";
   } else {
