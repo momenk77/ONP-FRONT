@@ -304,6 +304,7 @@
         <i class="fas fa-play-circle"></i> Now Playing
       </div>
       <video id="video-player" controls></video>
+      <iframe id="youtube-frame" style="display:none;" frameborder="0" allowfullscreen></iframe>
     </div>
     
   </div>
@@ -432,10 +433,10 @@
   document.querySelectorAll("#lesson-list li").forEach((li, i) => {
     li.classList.toggle("active", i === index);
   });
-
   const videoSection = document.getElementById("video-section");
 const videoPlayer = document.getElementById("video-player");
-const iframe = document.getElementById("live-preview");
+const youtubeFrame = document.getElementById("youtube-frame"); // الجديد
+const iframePreview = document.getElementById("live-preview"); // الأديم بتاع الأكواد
 
 if (lesson.videoUrl) {
   videoSection.style.display = "block";
@@ -443,20 +444,20 @@ if (lesson.videoUrl) {
   if (lesson.videoUrl.includes("youtube.com") || lesson.videoUrl.includes("youtu.be")) {
     // لو فيديو من يوتيوب
     videoPlayer.style.display = "none";
-    iframe.style.display = "block";
-    iframe.src = lesson.videoUrl.replace("/watch?v=", "/embed/");
-    iframe.width = "100%";
-    iframe.height = "400px";
+    youtubeFrame.style.display = "block";
+    youtubeFrame.src = lesson.videoUrl.replace("/watch?v=", "/embed/");
+    youtubeFrame.width = "100%";
+    youtubeFrame.height = "400px";
   } else {
     // لو فيديو عادي
-    iframe.style.display = "none";
+    youtubeFrame.style.display = "none";
     videoPlayer.style.display = "block";
     videoPlayer.src = lesson.videoUrl;
   }
 } else {
   videoSection.style.display = "none";
   videoPlayer.style.display = "none";
-  iframe.style.display = "none";
+  youtubeFrame.style.display = "none";
 }
 
 
