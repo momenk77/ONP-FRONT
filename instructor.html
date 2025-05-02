@@ -135,6 +135,42 @@ input[readonly] {
   color: #555;
   cursor: not-allowed;
 }
+@media (max-width: 768px) {
+  body {
+    flex-direction: column;
+  }
+
+  aside {
+    position: relative;
+    width: 100%;
+    height: auto;
+    padding: 1rem;
+    text-align: center;
+  }
+
+  main {
+    margin-left: 0;
+    padding: 1rem;
+  }
+
+  .course-grid {
+    grid-template-columns: 1fr;
+  }
+
+  input, button {
+    width: 100% !important;
+  }
+
+  .dashboard-card {
+    padding: 1rem;
+  }
+
+  .dashboard-header {
+    flex-direction: column;
+    align-items: flex-start;
+    font-size: 1.2rem;
+  }
+}
 
   </style>
 
@@ -143,7 +179,9 @@ input[readonly] {
 
 </head>
 <body>
-
+  <button id="toggle-sidebar" style="position: fixed; top: 0px; left: 0px; z-index: 9999; background-color: #1f2937; color: white; border: none; padding: 12px 14px; border-radius: 0px; display: none;">
+    ☰
+  </button>
 
   <aside>
     <h2><i class="fas fa-user-cog"></i> Instructor Panel</h2>
@@ -156,6 +194,8 @@ input[readonly] {
   </aside>
 
   <main>
+
+    
     <div class="dashboard-header"><i class="fas fa-chalkboard-teacher"></i> Instructor Dashboard</div>
 
     <div id="dashboard" class="dashboard-section">
@@ -218,6 +258,7 @@ input[readonly] {
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
+    
   </style>
   </body>
 
@@ -450,6 +491,16 @@ input[readonly] {
 
   XLSX.writeFile(workbook, "withdrawal-history.xlsx");
 }
+// Show toggle on small screens
+if (window.innerWidth < 768) {
+  document.getElementById("toggle-sidebar").style.display = "block";
+}
+
+document.getElementById("toggle-sidebar").addEventListener("click", () => {
+  const sidebar = document.querySelector("aside");
+  sidebar.style.display = (sidebar.style.display === "none" || !sidebar.style.display) ? "block" : "none";
+});
+
 
   </script>
   

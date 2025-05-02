@@ -113,30 +113,167 @@
     .purchase-btn:hover {
       background-color: #1e874b;
     }
+
+    @media (max-width: 768px) {
+  nav ul {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 1rem;
+  }
+
+  nav ul li {
+    width: 100%;
+    margin-bottom: 0.5rem;
+  }
+
+  nav ul li a {
+    font-size: 1rem;
+    display: block;
+    padding: 0.5rem 0;
+  }
+
+  nav ul li ul {
+    position: static;
+    background: transparent;
+    box-shadow: none;
+    padding-left: 1rem;
+  }
+}
+
+/* Navbar Styles */
+.navbar {
+  background-color: #111;
+  color: white;
+  padding: 0.75rem 1.5rem;
+}
+
+.nav-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.brand a {
+  color: white;
+  font-size: 1.5rem;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.nav-links {
+  list-style: none;
+  display: flex;
+  gap: 1.2rem;
+  margin: 0;
+  padding: 0;
+}
+
+.nav-links li a {
+  color: white;
+  text-decoration: none;
+  font-size: 1rem;
+}
+
+.hamburger {
+  display: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: white;
+}
+
+.has-submenu {
+  position: relative;
+}
+
+.submenu {
+  display: none;
+  position: absolute;
+  background: #222;
+  padding: 0.5rem 1rem;
+  top: 100%;
+  left: 0;
+  border-radius: 6px;
+  z-index: 1000;
+}
+
+.has-submenu:hover .submenu {
+  display: block;
+}
+
+.submenu li {
+  margin-bottom: 0.5rem;
+}
+
+.submenu li a {
+  color: #ccc;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+  .hamburger {
+    display: block;
+  }
+
+  .nav-links {
+    display: none;
+    flex-direction: column;
+    width: 100%;
+    margin-top: 1rem;
+  }
+
+  .nav-links.show {
+    display: flex;
+  }
+
+  .nav-links li {
+    width: 100%;
+    border-top: 1px solid #333;
+    padding: 0.5rem 0;
+  }
+
+  .has-submenu .submenu {
+    position: static;
+    background: none;
+    padding: 0;
+  }
+
+  .submenu li {
+    margin-left: 1rem;
+  }
+}
+
+
   </style>
 </head>
 <body>
 
    
     <!-- ===================== Navigation Bar ===================== -->
-    <nav>
-      <ul>
-        <li><a href="index.html"><i class="fas fa-home"></i> Home</a></li>
-
-          <li><a href="courses.html"><i class="fas fa-book-open"></i> Courses & Tutorials</a>
-          </li>
+    <nav class="navbar">
+      <div class="nav-container">
+        <div class="brand">
+          <a href="index.html">ONP</a>
+        </div>
+        <div class="hamburger" onclick="toggleMenu()">
+          <i class="fas fa-bars"></i>
+        </div>
+        <ul class="nav-links" id="nav-links">
+          <li><a href="index.html"><i class="fas fa-home"></i> Home</a></li>
+          <li><a href="courses.html"><i class="fas fa-book-open"></i> Courses & Tutorials</a></li>
           <li><a href="Code-Snippet-Library.html"><i class="fas fa-code"></i> Code Snippet Library</a></li>
           <li><a href="jobs.html"><i class="fas fa-briefcase"></i> Job Opportunities</a></li>
-          <li><a href="#contact"><i class="fas fa-headset"></i> Contact</a>
-              <ul>
-                  <li><a href="tel:+965-97936397"><i class="fas fa-phone"></i> +965-97936397</a></li>
-                  <li><a href="mailto:momenkandil72@gmail.com"><i class="fas fa-envelope"></i>
-                          momenkandil72@gmail.com</a></li>
-              </ul>
+          <li class="has-submenu">
+            <a href="#"><i class="fas fa-headset"></i> Contact</a>
+            <ul class="submenu">
+              <li><a href="tel:+965-97936397"><i class="fas fa-phone"></i> +965-97936397</a></li>
+              <li><a href="mailto:momenkandil72@gmail.com"><i class="fas fa-envelope"></i> momenkandil72@gmail.com</a></li>
+            </ul>
           </li>
-      </ul>
-  </nav>
-
+        </ul>
+      </div>
+    </nav>
+    
 
   <div class="container" id="course-container">
     <!-- Course details will be inserted here -->
@@ -238,7 +375,9 @@
   window.location.href = "login.html";
 }
 
-
+function toggleMenu() {
+    document.getElementById("nav-links").classList.toggle("show");
+  }
     loadPage();
   </script>
 

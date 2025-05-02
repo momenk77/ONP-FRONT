@@ -69,6 +69,20 @@
     .edit-btn { background-color: #27ae60; color: white; }
     .delete-btn { background-color: #e74c3c; color: white; }
     .content-btn { background-color: #f39c12; color: white; }
+    @media (max-width: 768px) {
+  .table-wrapper {
+    overflow-x: auto;
+  }
+
+  table {
+    width: 800px; /* أوسع من الشاشة عشان يظهر scroll */
+  }
+
+  th, td {
+    white-space: nowrap;
+  }
+}
+
   </style>
 </head>
 <body>
@@ -79,7 +93,8 @@
       <i class="fas fa-plus"></i> Add New Course
     </button>
   </div>
-
+  
+  <div class="table-wrapper">
   <table id="course-table">
     <thead>
       <tr>
@@ -93,6 +108,7 @@
     </thead>
     <tbody></tbody>
   </table>
+</div>
 
   <script>
    

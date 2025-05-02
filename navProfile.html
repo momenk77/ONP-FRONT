@@ -7,29 +7,30 @@
   
     
     <!-- ===================== Navigation Bar ===================== -->
-    <nav>
-      <ul>
-        <li><a href="index.html"><i class="fas fa-home"></i> Home</a></li>
-
-          <li><a href="courses.html"><i class="fas fa-book-open"></i> Courses & Tutorials</a>
-          </li>
+    <nav class="navbar">
+      <div class="nav-container">
+        <div class="brand">
+          <a href="index.html">ONP</a>
+        </div>
+        <div class="hamburger" onclick="toggleMenu()">
+          <i class="fas fa-bars"></i>
+        </div>
+        <ul class="nav-links" id="nav-links">
+          <li><a href="index.html"><i class="fas fa-home"></i> Home</a></li>
+          <li><a href="courses.html"><i class="fas fa-book-open"></i> Courses</a></li>
           <li><a href="Code-Snippet-Library.html"><i class="fas fa-code"></i> Code Snippet Library</a></li>
           <li><a href="jobs.html"><i class="fas fa-briefcase"></i> Job Opportunities</a></li>
-          <li><a href="#contact"><i class="fas fa-headset"></i> Contact</a>
-              <ul>
-                  <li><a href="tel:+965-97936397"><i class="fas fa-phone"></i> +965-97936397</a></li>
-                  <li><a href="mailto:momenkandil72@gmail.com"><i class="fas fa-envelope"></i>
-                          momenkandil72@gmail.com</a></li>
-              </ul>
+          <li class="has-submenu">
+            <a href="#"><i class="fas fa-headset"></i> Contact</a>
+            <ul class="submenu">
+              <li><a href="tel:+965-97936397"><i class="fas fa-phone"></i> +965-97936397</a></li>
+              <li><a href="mailto:momenkandil72@gmail.com"><i class="fas fa-envelope"></i> momenkandil72@gmail.com</a></li>
+            </ul>
           </li>
-          <li>
-            <a href="cart.html" id="cart-icon" class="nav-link" style="display: none;"><i class="fas fa-shopping-cart"></i> Cart</a>
-          </li>
-          <li>
-            <a href="wishlist.html" id="wishlist-icon" class="nav-link" style="display: none;"><i class="fas fa-heart"></i> Wishlist</a>
-          </li>
-      </ul>
-  </nav>
+        </ul>
+      </div>
+    </nav>
+    
 
 
   

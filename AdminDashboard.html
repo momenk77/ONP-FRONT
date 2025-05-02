@@ -125,9 +125,149 @@
       font-size: 1.5rem;
       font-weight: bold;
     }
+    
+    #toggle-sidebar {
+  position: fixed;
+  z-index: 10001;
+  background: #1f2937;
+  color: white;
+  border: none;
+  font-size: 1.3rem;
+  padding: 0.5rem;
+  border-radius: 50%;
+  width: 42px;
+  height: 42px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transition: background 0.3s ease;
+}
+
+#toggle-sidebar:hover {
+  background: #374151;
+}
+@media (max-width: 768px) {
+  #toggle-sidebar {
+    display: flex;
+  }
+
+  aside {
+    left: -220px;
+    transition: left 0.3s ease;
+    z-index: 1000;
+  }
+
+  aside.open {
+    left: 0;
+  }
+
+  main {
+    margin-left: 0;
+    padding: 1rem;
+  }
+
+  .cards {
+    flex-direction: column;
+  }
+
+  table {
+    font-size: 0.85rem;
+    display: block;
+    overflow-x: auto;
+  }
+
+  th, td {
+    white-space: nowrap;
+  }
+}
+
+
+.recent-courses-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.course-card {
+  background: white;
+  padding: 1rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  max-width: 320px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.course-card img {
+  width: 100%;
+  max-height: 150px;
+  object-fit: cover;
+  border-radius: 6px;
+  margin-bottom: 0.75rem;
+}
+
+.course-card h3 {
+  font-size: 1.1rem;
+  color: #2563eb;
+  margin: 0.5rem 0;
+}
+
+.course-card .instructor,
+.course-card .price {
+  font-size: 0.9rem;
+  color: #555;
+}
+.recent-jobs-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.job-card {
+  background-color: white;
+  padding: 1rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  max-width: 320px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.job-card h4 {
+  margin: 0;
+  font-size: 1.05rem;
+  color: #2563eb;
+}
+
+.job-card .job-info {
+  font-size: 0.9rem;
+  color: #444;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.job-card .job-info i {
+  color: #6b7280;
+}
+
+
+
   </style>
 </head>
 <body>
+  <button id="toggle-sidebar">
+    ☰
+  </button>
+  
   <aside>
     <h2>Admin Dashboard</h2>
     <ul>
@@ -146,9 +286,9 @@
       <h1>Dashboard Overview</h1>
       <div class="cards" id="overview-cards"></div>
       <h2>Recent Courses</h2>
-      <ul id="recent-courses"></ul>
+      <div id="recent-courses" class="recent-courses-wrapper"></div>
       <h2>Recent Jobs</h2>
-      <ul id="recent-jobs"></ul>
+      <div id="recent-jobs" class="recent-jobs-wrapper"></div>
     </section>
     <section id="users-section">
       <h1>Manage Users & Roles</h1>
@@ -319,12 +459,13 @@ function loadOverview() {
 
       const recentJobs = document.getElementById("recent-jobs");
       recentJobs.innerHTML = data.recentJobs.map(j => `
-        <div style="flex: 1 1 250px; background: white; padding: 1rem; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
-          <h4 style="margin: 0 0 10px; color: #2563eb;">${j.title}</h4>
-          <p style="margin: 0; font-size: 0.9rem; color: #333;">📅 ${new Date(j.postedAt).toLocaleDateString()}</p>
-          <p style="margin: 5px 0 0; font-size: 0.9rem; color: #555;">✉️ ${j.contactEmail}</p>
-        </div>
-      `).join("");
+      <div class="job-card">
+        <h4>${j.title}</h4>
+        <div class="job-info"><i class="fas fa-calendar-alt"></i> ${new Date(j.postedAt).toLocaleDateString()}</div>
+        <div class="job-info"><i class="fas fa-envelope"></i> ${j.contactEmail}</div>
+      </div>
+    `).join("");
+
       recentJobs.style.display = "flex";
       recentJobs.style.flexWrap = "wrap";
       recentJobs.style.gap = "1rem";
@@ -554,6 +695,20 @@ jobForm.addEventListener('submit', e => {
   }).then(res => res.ok ? loadSnippets() : sweetAlertError('Failed to delete snippet'));
 }
 
+const sidebar = document.querySelector("aside");
+const toggleBtn = document.getElementById("toggle-sidebar");
+
+toggleBtn.addEventListener("click", () => {
+  sidebar.classList.toggle("open");
+});
+
+window.addEventListener("click", (e) => {
+  if (!e.target.closest("aside") && !e.target.closest("#toggle-sidebar")) {
+    sidebar.classList.remove("open");
+  }
+});
+
+
     loadOverview();
     loadUsers();
     loadJobs();
@@ -562,6 +717,9 @@ jobForm.addEventListener('submit', e => {
     const overviewLink = Array.from(document.querySelectorAll("aside a"))
   .find(link => link.textContent.trim().toLowerCase().includes("overview"));
 overviewLink?.classList.add("active");
+
+
+
 
   </script>
 </body>

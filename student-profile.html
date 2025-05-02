@@ -25,13 +25,13 @@
     }
 
     .profile-container {
-      display: flex;
-      flex-direction: row;
-      max-width: 1100px;
-      margin: 2rem auto;
-      gap: 2rem;
-      padding: 0 2rem;
-    }
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  max-width: 1100px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
 
     .profile-edit, .enrolled-courses {
       flex: 1;
@@ -90,6 +90,185 @@
   color: #555;
   cursor: not-allowed;
 }
+/* Responsive Navbar Styles */
+.navbar {
+  background-color: #111;
+  color: white;
+  padding: 0.75rem 1.5rem;
+}
+
+.nav-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.brand a {
+  color: white;
+  font-size: 1.5rem;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.nav-links {
+  list-style: none;
+  display: flex;
+  gap: 1.2rem;
+  margin: 0;
+  padding: 0;
+}
+
+.nav-links li a {
+  color: white;
+  text-decoration: none;
+  font-size: 1rem;
+}
+
+.hamburger {
+  display: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: white;
+}
+
+.has-submenu {
+  position: relative;
+}
+
+.submenu {
+  display: none;
+  position: absolute;
+  background: #222;
+  padding: 0.5rem 1rem;
+  top: 100%;
+  left: 0;
+  border-radius: 6px;
+  z-index: 1000;
+}
+
+.has-submenu:hover .submenu {
+  display: block;
+}
+
+.submenu li {
+  margin-bottom: 0.5rem;
+}
+
+.submenu li a {
+  color: #ccc;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+  .hamburger {
+    display: block;
+  }
+
+  .nav-links {
+    display: none;
+    flex-direction: column;
+    width: 100%;
+    margin-top: 1rem;
+  }
+
+  .nav-links.show {
+    display: flex;
+  }
+
+  .nav-links li {
+    width: 100%;
+    border-top: 1px solid #333;
+    padding: 0.5rem 0;
+  }
+
+  .has-submenu .submenu {
+    position: static;
+    background: none;
+    padding: 0;
+  }
+
+  .submenu li {
+    margin-left: 1rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .profile-container {
+    flex-direction: row;
+    padding: 0 2rem;
+  }
+}
+
+.profile-edit,
+.enrolled-courses {
+  flex: 1;
+  background-color: white;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+}
+
+.profile-edit h2,
+.enrolled-courses h2 {
+  margin-bottom: 1.5rem;
+  font-size: 1.4rem;
+  color: #2c3e50;
+}
+
+.profile-edit input {
+  width: 100%;
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1rem;
+}
+
+.profile-edit button {
+  padding: 0.75rem;
+  background-color: #2980b9;
+  color: white;
+  font-weight: bold;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  width: 100%;
+  margin-top: 1rem;
+  transition: background 0.3s ease;
+}
+
+.profile-edit button:hover {
+  background-color: #1f5d91;
+}
+
+.course-list {
+  list-style: none;
+  padding: 0;
+}
+
+.course-list li {
+  background-color: #ecf0f1;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 0.75rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: background 0.3s;
+}
+
+.course-list li:hover {
+  background-color: #dce4e6;
+}
+
+input[readonly] {
+  background-color: #f0f0f0;
+  color: #555;
+  cursor: not-allowed;
+}
+
 
   </style>
 </head>
@@ -97,30 +276,32 @@
 <body>
 
     <!-- ===================== Navigation Bar ===================== -->
-    <nav>
-      <ul>
-        <li><a href="index.html"><i class="fas fa-home"></i> Home</a></li>
-
-          <li><a href="courses.html"><i class="fas fa-book-open"></i> Courses & Tutorials</a>
-          </li>
+    <nav class="navbar">
+      <div class="nav-container">
+        <div class="brand">
+          <a href="index.html">ONP</a>
+        </div>
+        <div class="hamburger" onclick="toggleMenu()">
+          <i class="fas fa-bars"></i>
+        </div>
+        <ul class="nav-links" id="nav-links">
+          <li><a href="index.html"><i class="fas fa-home"></i> Home</a></li>
+          <li><a href="courses.html"><i class="fas fa-book-open"></i> Courses & Tutorials</a></li>
           <li><a href="Code-Snippet-Library.html"><i class="fas fa-code"></i> Code Snippet Library</a></li>
           <li><a href="jobs.html"><i class="fas fa-briefcase"></i> Job Opportunities</a></li>
-          <li><a href="#contact"><i class="fas fa-headset"></i> Contact</a>
-              <ul>
-                  <li><a href="tel:+965-97936397"><i class="fas fa-phone"></i> +965-97936397</a></li>
-                  <li><a href="mailto:momenkandil72@gmail.com"><i class="fas fa-envelope"></i>
-                          momenkandil72@gmail.com</a></li>
-              </ul>
+          <li class="has-submenu">
+            <a href="#"><i class="fas fa-headset"></i> Contact</a>
+            <ul class="submenu">
+              <li><a href="tel:+965-97936397"><i class="fas fa-phone"></i> +965-97936397</a></li>
+              <li><a href="mailto:momenkandil72@gmail.com"><i class="fas fa-envelope"></i> momenkandil72@gmail.com</a></li>
+            </ul>
           </li>
-          <li>
-            <a href="cart.html" id="cart-icon" class="nav-link" style="display: none;"><i class="fas fa-shopping-cart"></i> Cart</a>
-          </li>
-          <li>
-            <a href="wishlist.html" id="wishlist-icon" class="nav-link" style="display: none;"><i class="fas fa-heart"></i> Wishlist</a>
-          </li>
-      </ul>
-  </nav>
-
+          <li><a href="cart.html" id="cart-icon" style="display: none;"><i class="fas fa-shopping-cart"></i> Cart</a></li>
+          <li><a href="wishlist.html" id="wishlist-icon" style="display: none;"><i class="fas fa-heart"></i> Wishlist</a></li>
+        </ul>
+      </div>
+    </nav>
+    
   <header>
     <h1><i class="fas fa-user-circle"></i> Student Profile</h1>
   </header>
@@ -302,6 +483,9 @@ fetch("https://mazingad-001-site1.ntempurl.com/api/Enrollment/my-courses", { hea
       }
     }
   });
+  function toggleMenu() {
+    document.getElementById("nav-links").classList.toggle("show");
+  }
   </script>
 </body>
 
