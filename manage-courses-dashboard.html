@@ -116,7 +116,7 @@
     const headers = { 'Authorization': `Bearer ${token}` };
 
     function loadCourses() {
-      fetch("https://mazingad-001-site1.ntempurl.com/api/Instructor/my-courses", { headers })
+      fetch("http://mazengaad-001-site1.mtempurl.com/api/Instructor/my-courses", { headers })
         .then(res => res.json())
         .then(data => {
           const tbody = document.querySelector("#course-table tbody");
@@ -161,7 +161,7 @@
         confirmButtonText: 'Yes, delete it!'
       }).then((result) => {
         if (result.isConfirmed) {
-          fetch(`https://mazingad-001-site1.ntempurl.com/api/Course/${id}`, {
+          fetch(`http://mazengaad-001-site1.mtempurl.com/api/Course/${id}`, {
             method: "DELETE",
             headers
           }).then(async res => {

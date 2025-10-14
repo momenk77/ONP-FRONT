@@ -381,7 +381,7 @@
   let selectedLessonId = null;
 
   async function loadCourse() {
-    const res = await fetch(`https://mazingad-001-site1.ntempurl.com/api/Course/${courseId}/student-view`, {
+    const res = await fetch(`http://mazengaad-001-site1.mtempurl.com/api/Course/${courseId}/student-view`, {
       headers: { Authorization: "Bearer " + token }
     });
 
@@ -426,7 +426,7 @@
   }
 
   async function loadProgress() {
-  const res = await fetch(`https://mazingad-001-site1.ntempurl.com/api/CourseProgress/${courseId}`, {
+  const res = await fetch(`http://mazengaad-001-site1.mtempurl.com/api/CourseProgress/${courseId}`, {
     headers: { Authorization: "Bearer " + token }
   });
   const data = await res.json();
@@ -443,7 +443,7 @@
 
 
   async function loadRating() {
-    const res = await fetch(`https://mazingad-001-site1.ntempurl.com/api/CourseRating/${courseId}`, {
+    const res = await fetch(`http://mazengaad-001-site1.mtempurl.com/api/CourseRating/${courseId}`, {
       headers: { Authorization: "Bearer " + token }
     });
     const value = await res.json();
@@ -517,7 +517,7 @@ if (lesson.videoUrl) {
 
 document.getElementById("mark-complete-btn").onclick = async () => {
   if (!selectedLessonId) return;
-  await fetch(`https://mazingad-001-site1.ntempurl.com/api/CourseProgress/${selectedLessonId}`, {
+  await fetch(`http://mazengaad-001-site1.mtempurl.com/api/CourseProgress/${selectedLessonId}`, {
     method: "POST",
     headers: { Authorization: "Bearer " + token }
   })
@@ -555,7 +555,7 @@ document.getElementById("mark-complete-btn").onclick = async () => {
       return;
     }
 
-    fetch(`https://mazingad-001-site1.ntempurl.com/api/CourseRating/${courseId}`, {
+    fetch(`http://mazengaad-001-site1.mtempurl.com/api/CourseRating/${courseId}`, {
   method: "POST",
   headers: {
     "Content-Type": "application/json",

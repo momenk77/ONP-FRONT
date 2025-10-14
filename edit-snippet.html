@@ -80,7 +80,7 @@
       'Content-Type': 'application/json'
     };
   
-    fetch(`https://mazingad-001-site1.ntempurl.com/api/Snippet/${id}`)
+    fetch(`http://mazengaad-001-site1.mtempurl.com/api/Snippet/${id}`)
       .then(res => res.json())
       .then(snippet => {
         document.getElementById("title").value = snippet.title;
@@ -100,7 +100,7 @@
       };
   
       try {
-        const res = await fetch(`https://mazingad-001-site1.ntempurl.com/api/Snippet/${id}`, {
+        const res = await fetch(`http://mazengaad-001-site1.mtempurl.com/api/Snippet/${id}`, {
           method: "PUT",
           headers,
           body: JSON.stringify(payload)

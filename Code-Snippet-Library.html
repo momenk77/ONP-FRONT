@@ -356,7 +356,7 @@
       const language = languageSelect.value;
       const query = `?search=${encodeURIComponent(search)}&language=${encodeURIComponent(language)}`;
 
-      const res = await fetch(`https://mazingad-001-site1.ntempurl.com/api/snippet${query}`);
+      const res = await fetch(`http://mazengaad-001-site1.mtempurl.com/api/snippet${query}`);
       const snippets = await res.json();
 
       container.innerHTML = snippets.map(snippet => {
