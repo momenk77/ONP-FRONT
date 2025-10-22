@@ -217,52 +217,7 @@
 
         });
     </script>
-    <!-- <script>
-        // ✅ Chat Logic
-        const messagesBox = document.getElementById("chat-messages");
-        const input = document.getElementById("message-input");
-        const sendBtn = document.getElementById("send-btn");
-        const messages = [];
 
-        sendBtn.addEventListener("click", sendMessage);
-        input.addEventListener("keypress", (e) => {
-            if (e.key === "Enter") sendMessage();
-        });
-
-        function sendMessage() {
-            const text = input.value.trim();
-            if (text === "") return;
-
-            messages.push({ sender: "user", text });
-            renderMessages();
-            input.value = "";
-
-            // مثال لرد تلقائي (اختياري)
-            setTimeout(() => {
-                messages.push({ sender: "other", text: "Received: " + text });
-                renderMessages();
-            }, 700);
-        }
-
-        function renderMessages() {
-            messagesBox.innerHTML = "";
-            messages.forEach(m => {
-                const div = document.createElement("div");
-                div.className = `message ${m.sender}`;
-                div.textContent = m.text;
-                messagesBox.appendChild(div);
-            });
-            messagesBox.scrollTop = messagesBox.scrollHeight;
-        }
-
-        // ✅ رجوع للصفحة الرئيسية عند الضغط على ×
-        document.addEventListener("click", (e) => {
-            if (e.target.closest("#close-chat")) {
-                window.location.href = "index.html";
-            }
-        });
-
-    </script> -->
 
 
     <!-- Navbar Scripts -->

@@ -1,184 +1,195 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>    
+
+<head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ONP</title>
-<!-- Font Awesome CDN (جوه الـ <head>) -->
+
+  <!-- Font Awesome CDN -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 
-
   <style>
-    /* 🔽 DropDown */
-.dropdown {
-  position: relative;
-}
+    /* ✅ Dropdown Menu */
+    .dropdown {
+      position: relative;
+    }
 
-.dropdown-menu {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  background-color: #1f2937;
-  padding: 0.5rem 1rem;
-  border-radius: 0.5rem;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-  display: none;
-  flex-direction: column;
-  gap: 0.5rem;
-  z-index: 999;
-  min-width: 250px;
-}
+    .dropdown-menu {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      background-color: #1f2937;
+      padding: 0.5rem 1rem;
+      border-radius: 0.5rem;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      display: none;
+      flex-direction: column;
+      gap: 0.5rem;
+      z-index: 999;
+      min-width: 250px;
+    }
 
-.dropdown:hover .dropdown-menu,
-.dropdown:focus-within .dropdown-menu {
-  display: flex;
-}
+    .dropdown:hover .dropdown-menu,
+    .dropdown:focus-within .dropdown-menu {
+      display: flex;
+    }
 
-.dropdown-menu a {
-  color: #e5e7eb;
-  text-decoration: none;
-  font-size: 14px;
-  transition: color 0.3s;
-}
+    .dropdown-menu a {
+      color: #e5e7eb;
+      text-decoration: none;
+      font-size: 14px;
+      transition: color 0.3s;
+    }
 
-.dropdown-menu a:hover {
-  color: #3b82f6;
-}
+    .dropdown-menu a:hover {
+      color: #3b82f6;
+    }
 
-.dropdown-menu i {
-  margin-right: 8px;
-}
-.dropdown-menu li {
-  list-style: none;
-}
+    .dropdown-menu i {
+      margin-right: 8px;
+    }
 
+    .dropdown-menu li {
+      list-style: none;
+    }
 
+    /* ✅ Navbar Links */
     .nav-link {
       color: #e5e7eb;
       text-decoration: none;
       font-size: 15px;
       transition: color 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
-  
+
     .nav-link:hover {
       color: #3b82f6;
     }
-  
+
     .nav-link i {
-      margin-right: 6px;
+      font-size: 16px;
     }
-  
-    /* ✅ الوضع الطبيعي (شاشة كبيرة) */
+
+    /* ✅ Navbar Container */
     #main-nav {
       display: flex;
       align-items: center;
       gap: 1.5rem;
       flex-wrap: wrap;
     }
-  
+
     #mobile-menu-btn {
-      display: none; /* يختفي في الوضع العادي */
+      display: none;
     }
-  
+
     .header-container {
-  max-width: 1300px;
-  margin: auto;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-}
+      max-width: 1300px;
+      margin: auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+    }
 
-@media (max-width: 768px) {
+    /* ✅ Responsive Mode */
+    @media (max-width: 768px) {
+      #main-nav {
+        display: none !important;
+        flex-direction: column;
+        align-items: flex-start;
+        background-color: #1f2937;
+        width: 100%;
+        padding-top: 1rem;
+      }
 
-/* الحالة الافتراضية مخفية */
-#main-nav {
-  display: none !important;   /* نجبرها تختفي */
-  flex-direction: column;
-  align-items: flex-start;
-  background-color: #1f2937;
-  width: 100%;
-  padding-top: 1rem;
-}
+      #main-nav.open {
+        display: flex !important;
+      }
 
-/* لما نضيف كلاس .open تظهر */
-#main-nav.open {
-  display: flex !important;   /* نجبرها تظهر */
-}
+      .header-container {
+        flex-direction: column;
+        align-items: flex-start;
+      }
 
-/* نخلي الـ header يكوِّم العناصر تحت بعض */
-.header-container {
-  flex-direction: column;
-  align-items: flex-start;
-}
-
-#mobile-menu-btn {
-  display: block;
-  margin-top: 1rem;
-}
-}
-
+      #mobile-menu-btn {
+        display: block;
+        margin-top: 1rem;
+      }
+    }
   </style>
-  
-
-
-
 </head>
+
 <body>
-  
-    
-  <!-- Header -->
-<header style="background-color: #1f2937; color: white; padding: 1rem 2rem;">
-  <div class="header-container">
+  <!-- ✅ Header -->
+  <header style="background-color: #1f2937; color: white; padding: 1rem 2rem;">
+    <div class="header-container">
 
-    <!-- Logo -->
-    <div style="display: flex; align-items: center; gap: 0.75rem;">
-      <i class="fas fa-graduation-cap" style="font-size: 1.8rem; color: #3b82f6;"></i>
-      <h1 style="font-size: 1.5rem; font-weight: bold;">ONP</h1>
-    </div>
-
-    <!-- ☰ زر الموبايل -->
-    <button id="mobile-menu-btn" style="background: none; border: none; color: white; font-size: 1.5rem;">
-      <i class="fas fa-bars"></i>
-    </button>
-
-    <!-- Navigation -->
-    <nav id="main-nav">
-      <a href="index.html" class="nav-link"><i class="fas fa-home"></i> Home</a>
-      <a href="courses.html" class="nav-link"><i class="fas fa-book-open"></i> Courses</a>
-      <a href="Code-Snippet-Library.html" class="nav-link"><i class="fas fa-code"></i> Snippets</a>
-      <a href="jobs.html" class="nav-link"><i class="fas fa-briefcase"></i> Jobs</a>
-      <div class="nav-link dropdown">
-        <span><i class="fas fa-headset"></i> Contact</span>
-        <ul class="dropdown-menu">
-          <li><a href="tel:+965-97936397"><i class="fas fa-phone"></i> +965-97936397</a></li>
-          <li><a href="mailto:momenkandil72@gmail.com"><i class="fas fa-envelope"></i> momenkandil72@gmail.com</a></li>
-        </ul>
+      <!-- 🎓 Logo -->
+      <div style="display: flex; align-items: center; gap: 0.75rem;">
+        <i class="fas fa-graduation-cap" style="font-size: 1.8rem; color: #3b82f6;"></i>
+        <h1 style="font-size: 1.5rem; font-weight: bold;">ONP</h1>
       </div>
-      <a href="login.html" id="login-link" class="nav-link"><i class="fas fa-sign-in-alt"></i> Login</a>
-      <a href="signup.html" id="signup-link" class="nav-link"><i class="fas fa-user-plus"></i> Sign Up</a>
-      <a href="cart.html" id="cart-icon" class="nav-link" style="display: none;"><i class="fas fa-shopping-cart"></i> Cart</a>
-      <a href="wishlist.html" id="wishlist-icon" class="nav-link" style="display: none;"><i class="fas fa-heart"></i> Wishlist</a>
-      <span id="profile-sidebar-toggle" style="cursor: pointer; display: none;">
-        <img src="images/avatar.jpg" alt="Avatar" id="nav-avatar" style="width: 34px; height: 34px; border-radius: 50%; border: 2px solid #3b82f6;" />
-      </span>
-    </nav>
-  </div>
-</header>
 
-    
-<script>
- document.addEventListener("DOMContentLoaded", () => {
-  const menuBtn = document.getElementById("mobile-menu-btn");
-  const nav     = document.getElementById("main-nav");
+      <!-- ☰ Mobile Menu Button -->
+      <button id="mobile-menu-btn" style="background: none; border: none; color: white; font-size: 1.5rem;">
+        <i class="fas fa-bars"></i>
+      </button>
 
-  menuBtn.addEventListener("click", () => {
-    nav.classList.toggle("open");
-  });
-});
+      <!--  Navigation -->
+      <nav id="main-nav">
+        <a href="index.html" class="nav-link"><i class="fas fa-home"></i> Home</a>
+        <a href="courses.html" class="nav-link"><i class="fas fa-book-open"></i> Courses</a>
+        <a href="Code-Snippet-Library.html" class="nav-link"><i class="fas fa-code"></i> Snippets</a>
+        <a href="jobs.html" class="nav-link"><i class="fas fa-briefcase"></i> Jobs</a>
 
-</script>
+        <!-- 💬 Chat Icon (Always visible for now) -->
+        <a href="chat.html" id="chat-icon" class="nav-link">
+          <i class="fas fa-comments"></i> Chat
+        </a>
 
-  
+        <div class="nav-link dropdown">
+          <span><i class="fas fa-headset"></i> Contact</span>
+          <ul class="dropdown-menu">
+            <li><a href="tel:+965-97936397"><i class="fas fa-phone"></i> +965-97936397</a></li>
+            <li><a href="mailto:momenkandil72@gmail.com"><i class="fas fa-envelope"></i> momenkandil72@gmail.com</a>
+            </li>
+          </ul>
+        </div>
+
+        <a href="login.html" id="login-link" class="nav-link"><i class="fas fa-sign-in-alt"></i> Login</a>
+        <a href="signup.html" id="signup-link" class="nav-link"><i class="fas fa-user-plus"></i> Sign Up</a>
+
+        <a href="cart.html" id="cart-icon" class="nav-link" style="display: none;">
+          <i class="fas fa-shopping-cart"></i> Cart
+        </a>
+
+        <a href="wishlist.html" id="wishlist-icon" class="nav-link" style="display: none;">
+          <i class="fas fa-heart"></i> Wishlist
+        </a>
+
+        <!-- 👤 Profile Avatar -->
+        <span id="profile-sidebar-toggle" style="cursor: pointer; display: none;">
+          <img src="images/avatar.jpg" alt="Avatar" id="nav-avatar"
+            style="width: 34px; height: 34px; border-radius: 50%; border: 2px solid #3b82f6;" />
+        </span>
+      </nav>
+    </div>
+  </header>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const menuBtn = document.getElementById("mobile-menu-btn");
+      const nav = document.getElementById("main-nav");
+
+      // ✅ فتح/قفل القائمة في الموبايل
+      menuBtn.addEventListener("click", () => {
+        nav.classList.toggle("open");
+      });
+    });
+  </script>
 </body>
+
 </html>
