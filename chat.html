@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chat - ONP</title>
+    <!-- nav bar  -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <!-- روابط CSS -->
+
+
+
+    <!-- /* Navbar  styles */ -->
+    <style>
+        .navbar {
+            background-color: #111;
+            color: white;
+            padding: 0.75rem 1.5rem;
+        }
+
+        .nav-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+
+        .brand a {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-decoration: none;
+        }
+
+        .nav-links {
+            list-style: none;
+            display: flex;
+            gap: 1.2rem;
+            margin: 0;
+            padding: 0;
+        }
+
+        .nav-links li a {
+            color: white;
+            text-decoration: none;
+            font-size: 1rem;
+        }
+
+        .hamburger {
+            display: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: white;
+        }
+
+        .has-submenu {
+            position: relative;
+        }
+
+        .submenu {
+            display: none;
+            position: absolute;
+            background: #222;
+            padding: 0.5rem 1rem;
+            top: 100%;
+            left: 0;
+            border-radius: 6px;
+            z-index: 1000;
+        }
+
+        .has-submenu:hover .submenu {
+            display: block;
+        }
+
+        .submenu li {
+            margin-bottom: 0.5rem;
+        }
+
+        .submenu li a {
+            color: #ccc;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .hamburger {
+                display: block;
+            }
+
+            .nav-links {
+                display: none;
+                flex-direction: column;
+                width: 100%;
+                margin-top: 1rem;
+            }
+
+            .nav-links.show {
+                display: flex;
+            }
+
+            .nav-links li {
+                width: 100%;
+                border-top: 1px solid #333;
+                padding: 0.5rem 0;
+            }
+
+            .has-submenu .submenu {
+                position: static;
+                background: none;
+                padding: 0;
+            }
+
+            .submenu li {
+                margin-left: 1rem;
+            }
+        }
+    </style>
+
+    <style>
+        .chat-message-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .chat-message-list li {
+            margin-bottom: 10px;
+        }
+
+        .chat-message-list .sender p {
+            background: #e5e7eb;
+            color: #111827;
+            padding: 10px;
+            border-radius: 10px;
+            border-top-left-radius: 0;
+            display: inline-block;
+        }
+
+        .chat-message-list .repaly p {
+            background: #3b82f6;
+            color: #fff;
+            padding: 10px;
+            border-radius: 10px;
+            border-top-right-radius: 0;
+            display: inline-block;
+            margin-left: auto;
+        }
+
+        /* ✅ Chat Page Styles */
+        body {
+            background-color: #f9fafb;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+        }
+
+        /* ✅ خلي الـnavbar ثابت فوق */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
+        }
+
+        main {
+            /* علشان الـnavbar ياخد مساحة فوق */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: calc(100vh - 100px);
+            padding: 1rem;
+        }
+
+        .chat-container {
+            width: 100%;
+            max-width: 700px;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            height: 75vh;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background: #1f2937;
+            color: white;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .chat-header h2 {
+            margin: 0;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 1rem;
+            overflow-y: auto;
+            background-color: #f3f4f6;
+        }
+
+        .message {
+            max-width: 75%;
+            padding: 10px 15px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            word-wrap: break-word;
+            font-size: 15px;
+            line-height: 1.4;
+        }
+
+        .message.user {
+            background-color: #3b82f6;
+            color: white;
+            margin-left: auto;
+            border-top-right-radius: 0;
+        }
+
+        .message.other {
+            background-color: #e5e7eb;
+            color: #111827;
+            margin-right: auto;
+            border-top-left-radius: 0;
+        }
+
+        .chat-input {
+            display: flex;
+            padding: 10px;
+            background-color: #fff;
+            border-top: 1px solid #ddd;
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            outline: none;
+        }
+
+        .chat-input button {
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 6px;
+            margin-left: 8px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .chat-input button:hover {
+            background-color: #2563eb;
+        }
+    </style>
+    <style>
+        /* Layout split: sidebar + chat box */
+        .chat-layout {
+            display: flex;
+            width: 100%;
+            max-width: 1100px;
+            height: 80vh;
+            margin: 6rem auto 0;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        /* ===== LEFT SIDEBAR ===== */
+        .chat-sidebar {
+            width: 35%;
+            background: #f1f1f1;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid #ddd;
+        }
+
+        .search-box {
+            padding: 1rem;
+            border-bottom: 1px solid #ddd;
+            background: #fff;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            outline: none;
+            font-size: 0.95rem;
+        }
+
+        .user-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0.5rem;
+        }
+
+        .user-list a {
+            display: block;
+            padding: 0.75rem;
+            border-radius: 8px;
+            background: #fff;
+            margin-bottom: 0.5rem;
+            text-decoration: none;
+            color: #111;
+            transition: 0.3s;
+        }
+
+        .user-list a:hover {
+            background: #e5e7eb;
+        }
+
+        .user-list .active {
+            background: #3b82f6;
+            color: #fff;
+        }
+
+        /* ===== RIGHT CHAT AREA ===== */
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #fff;
+        }
+
+        .chat-header {
+            background: #1f2937;
+            color: white;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+            background-color: #f3f4f6;
+        }
+
+        .chat-input {
+            display: flex;
+            padding: 0.75rem;
+            border-top: 1px solid #ddd;
+            background: #fff;
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            outline: none;
+        }
+
+        .chat-input button {
+            margin-left: 8px;
+            padding: 10px 16px;
+            background: #3b82f6;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <!-- NAV BAR -->
+
+    <div id="nav-placeholder"></div>
+
+    <!-- ✅ Chat Section -->
+    <main>
+        <div class="chat-layout">
+            <!-- ✅ Left Sidebar -->
+            <div class="chat-sidebar">
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="Search..." />
+                </div>
+                <div id="userList" class="user-list">
+                    <!-- المحادثات هتظهر هنا -->
+                </div>
+            </div>
+
+            <!-- ✅ Right Chat Area -->
+            <div class="chat-container">
+                <div class="chat-header">
+                    <h2 id="chatUserName"><i class="fas fa-comments"></i> Messages</h2>
+                </div>
+
+                <div class="chat-messages">
+                    <ul id="chat-messages" class="chat-message-list">
+                        <!-- Messages appear here -->
+                    </ul>
+                </div>
+
+
+                <div class="chat-input">
+                    <input type="text" id="message-input" placeholder="Type your message..." />
+                    <button id="send-btn"><i class="fas fa-paper-plane"></i></button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- ✅ Scripts -->
+
+
+
+    <!-- Navbar Scripts -->
+    <script>
+        function loadCSS(href) {
+            return new Promise((resolve, reject) => {
+                const link = document.createElement("link");
+                link.rel = "stylesheet";
+                link.href = href;
+                link.onload = () => resolve();
+                link.onerror = () => reject(`Failed to load CSS: ${href}`);
+                document.head.appendChild(link);
+            });
+        }
+
+        Promise.all([
+            fetch("navProfile.html")
+                .then(res => res.text())
+                .then(html => {
+                    document.getElementById("nav-placeholder").innerHTML = html;
+                    const storedUser = localStorage.getItem("user");
+                    if (storedUser) {
+                        const user = JSON.parse(storedUser);
+                        if (user.roles[0] !== "Instructor" && user.roles[0] !== "Admin") {
+                            document.getElementById("cart-icon")?.style.setProperty("display", "inline-block");
+                            document.getElementById("wishlist-icon")?.style.setProperty("display", "inline-block");
+                        }
+                    }
+                }),
+            loadCSS("CSS/nav.css") // تأكد إن nav.css اتحمل
+        ]).then(() => {
+            document.body.classList.remove("hidden-body"); // دلوقتي بس نظهر الصفحة
+        });
+
+        function toggleMenu() {
+            document.getElementById("nav-links").classList.toggle("show");
+        }
+
+
+    </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const sendBtn = document.getElementById("send-btn");
+            const messageInput = document.getElementById("message-input");
+            const chatMessages = document.getElementById("chat-messages");
+
+            // لما المستخدم يضغط على الزر
+            sendBtn.addEventListener("click", sendMessage);
+
+            // أو يضغط Enter
+            messageInput.addEventListener("keypress", function (e) {
+                if (e.key === "Enter") {
+                    sendMessage();
+                }
+            });
+
+            function sendMessage() {
+                const message = messageInput.value.trim();
+                if (message === "") return;
+
+                // ✅ هنا بنضيف الرسالة في واجهة المستخدم
+                const li = document.createElement("li");
+                li.textContent = message;
+                chatMessages.appendChild(li);
+
+                // نفضي الخانة
+                messageInput.value = "";
+
+                // ✅ لو عايز تبعتها للسيرفر:
+                // fetch("/api/Chat/send-message", {
+                //     method: "POST",
+                //     headers: {
+                //         "Content-Type": "application/json",
+                //     },
+                //     body: JSON.stringify({
+                //         receiverId: "123", // غيّرها حسب المستخدم اللي بيكلمه
+                //         courseId: 1,       // أو أي ID للكورس
+                //         content: message
+                //     })
+                // })
+                // .then(res => res.json())
+                // .then(data => {
+                //     console.log("✅ Response:", data);
+                // })
+                // .catch(err => {
+                //     console.error("❌ Error sending message:", err);
+                // });
+            }
+        });
+    </script>
+
+
+    <script>
+        // ============================
+        // 🔗 CHAT API — PURE CONNECTION
+        // No UI logic, only backend endpoints
+        // ============================
+
+        const API_BASE = "https://mazengad6-001-site1.rtempurl.com/api/Chat";
+
+        // 📌 إعداد الهيدر للتوكن (لو موجود)
+        function getAuthHeaders() {
+            const token = localStorage.getItem("token");
+            const headers = { "Content-Type": "application/json" };
+            if (token) headers["Authorization"] = `Bearer ${token}`;
+            return headers;
+        }
+
+        // 1️⃣ إرسال رسالة
+        async function sendMessage(receiverId, courseId, content) {
+            try {
+                const res = await fetch(`${API_BASE}/send-message`, {
+                    method: "POST",
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({
+                        receiverId,
+                        courseId,
+                        content
+                    })
+                });
+                const data = await res.json();
+                console.log("📤 Message Sent:", data);
+                return data;
+            } catch (err) {
+                console.error("❌ Error sending message:", err);
+            }
+        }
+
+        // 2️⃣ عرض جميع المحادثات
+        async function getConversations() {
+            try {
+                const res = await fetch(`${API_BASE}/conversations`, {
+                    method: "GET",
+                    headers: getAuthHeaders()
+                });
+                const data = await res.json();
+                console.log("💬 Conversations:", data);
+                return data;
+            } catch (err) {
+                console.error("❌ Error fetching conversations:", err);
+            }
+        }
+
+        // 3️⃣ جلب الرسائل بين مستخدمين
+        async function getMessages(otherUserId, courseId) {
+            try {
+                const res = await fetch(`${API_BASE}/messages/${otherUserId}/${courseId}`, {
+                    method: "GET",
+                    headers: getAuthHeaders()
+                });
+                const data = await res.json();
+                console.log("📨 Messages:", data);
+                return data;
+            } catch (err) {
+                console.error("❌ Error fetching messages:", err);
+            }
+        }
+
+        // 4️⃣ جلب عدد الرسائل غير المقروءة
+        async function getUnreadCount() {
+            try {
+                const res = await fetch(`${API_BASE}/unread-count`, {
+                    method: "GET",
+                    headers: getAuthHeaders()
+                });
+                const data = await res.json();
+                console.log("🔔 Unread Count:", data);
+                return data;
+            } catch (err) {
+                console.error("❌ Error fetching unread count:", err);
+            }
+        }
+
+        // 5️⃣ تحديد رسالة كمقروءة
+        async function markMessageAsRead(messageId) {
+            try {
+                const res = await fetch(`${API_BASE}/mark-as-read`, {
+                    method: "POST",
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({ messageId })
+                });
+                const data = await res.json();
+                console.log("✅ Message Marked as Read:", data);
+                return data;
+            } catch (err) {
+                console.error("❌ Error marking message as read:", err);
+            }
+        }
+
+        // 🧩 مثال عملي (تقدر تشيله بعدين)
+        // window.onload = async () => {
+        //     await getConversations();
+        //     // await sendMessage("user123", 2, "Hello!");
+        //     // await getMessages("user123", 2);
+        //     // await getUnreadCount();
+        //     // await markMessageAsRead(123);
+        // };
+    </script>
+
+
+
+</body>
+
+</html>
