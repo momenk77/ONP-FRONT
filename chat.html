@@ -459,7 +459,7 @@
 
 
     </script>
-    <script>
+    <!-- <script>
         document.addEventListener("DOMContentLoaded", () => {
             const sendBtn = document.getElementById("send-btn");
             const messageInput = document.getElementById("message-input");
@@ -487,135 +487,250 @@
                 // نفضي الخانة
                 messageInput.value = "";
 
-                // ✅ لو عايز تبعتها للسيرفر:
-                // fetch("/api/Chat/send-message", {
-                //     method: "POST",
-                //     headers: {
-                //         "Content-Type": "application/json",
-                //     },
-                //     body: JSON.stringify({
-                //         receiverId: "123", // غيّرها حسب المستخدم اللي بيكلمه
-                //         courseId: 1,       // أو أي ID للكورس
-                //         content: message
-                //     })
-                // })
-                // .then(res => res.json())
-                // .then(data => {
-                //     console.log("✅ Response:", data);
-                // })
-                // .catch(err => {
-                //     console.error("❌ Error sending message:", err);
-                // });
+
             }
         });
-    </script>
+    </script> -->
 
 
     <script>
-        // ============================
-        // 🔗 CHAT API — PURE CONNECTION
-        // No UI logic, only backend endpoints
-        // ============================
+        /**************************************************************************
+         Final chat frontend ready to connect to backend endpoints provided by backend.
+         - Uses localStorage.user (JSON) and localStorage.token
+         - Implements: /conversations, /messages/{otherUserId}/{courseId}, /send-message,
+                       /unread-count, /mark-as-read
+         - Polls current conversation every 3s
+         **************************************************************************/
 
-        const API_BASE = "https://mazengad6-001-site1.rtempurl.com/api/Chat";
+        (function () {
+            const API_BASE = "https://mazengad6-001-site1.rtempurl.com/api/Chat";
+            const POLL_INTERVAL = 3000;
 
-        // 📌 إعداد الهيدر للتوكن (لو موجود)
-        function getAuthHeaders() {
-            const token = localStorage.getItem("token");
-            const headers = { "Content-Type": "application/json" };
-            if (token) headers["Authorization"] = `Bearer ${token}`;
-            return headers;
-        }
+            // DOM
+            const userListEl = document.getElementById('userList');
+            const searchInput = document.getElementById('searchInput');
+            const chatMessagesEl = document.getElementById('chat-messages');
+            const messageInput = document.getElementById('message-input');
+            const sendBtn = document.getElementById('send-btn');
+            const chatUserName = document.getElementById('chatUserName');
+            const chatCourseTitle = document.getElementById('chatCourseTitle');
+            const userRoleLabel = document.getElementById('userRoleLabel');
 
-        // 1️⃣ إرسال رسالة
-        async function sendMessage(receiverId, courseId, content) {
-            try {
-                const res = await fetch(`${API_BASE}/send-message`, {
-                    method: "POST",
-                    headers: getAuthHeaders(),
-                    body: JSON.stringify({
-                        receiverId,
-                        courseId,
-                        content
-                    })
-                });
-                const data = await res.json();
-                console.log("📤 Message Sent:", data);
-                return data;
-            } catch (err) {
-                console.error("❌ Error sending message:", err);
+            // state
+            let conversations = []; // list from /conversations
+            let current = null; // { otherUserId, courseId, otherUserName }
+            let pollTimer = null;
+
+            // read auth+user from localStorage
+            function getToken() { return localStorage.getItem('token') || null; }
+            function getUser() {
+                try { return JSON.parse(localStorage.getItem('user') || 'null'); }
+                catch { return null; }
             }
-        }
 
-        // 2️⃣ عرض جميع المحادثات
-        async function getConversations() {
-            try {
-                const res = await fetch(`${API_BASE}/conversations`, {
-                    method: "GET",
-                    headers: getAuthHeaders()
-                });
-                const data = await res.json();
-                console.log("💬 Conversations:", data);
-                return data;
-            } catch (err) {
-                console.error("❌ Error fetching conversations:", err);
+            function getHeaders() {
+                const headers = { 'Content-Type': 'application/json' };
+                const t = getToken();
+                if (t) headers['Authorization'] = 'Bearer ' + t;
+                return headers;
             }
-        }
 
-        // 3️⃣ جلب الرسائل بين مستخدمين
-        async function getMessages(otherUserId, courseId) {
-            try {
-                const res = await fetch(`${API_BASE}/messages/${otherUserId}/${courseId}`, {
-                    method: "GET",
-                    headers: getAuthHeaders()
-                });
-                const data = await res.json();
-                console.log("📨 Messages:", data);
-                return data;
-            } catch (err) {
-                console.error("❌ Error fetching messages:", err);
+            // helper: escape for safety
+            function escapeHtml(s = '') { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;'); }
+
+            // load conversations
+            async function loadConversations() {
+                userListEl.innerHTML = '<div class="small-muted" style="padding:1rem;text-align:center">Loading...</div>';
+                try {
+                    const res = await fetch(`${API_BASE}/conversations`, { headers: getHeaders() });
+                    if (!res.ok) throw new Error('Failed to fetch conversations');
+                    conversations = await res.json();
+                    renderConversations(conversations);
+                } catch (err) {
+                    console.error('Error loading conversations', err);
+                    userListEl.innerHTML = '<div class="small-muted" style="padding:1rem;color:#c00;">Unable to load conversations</div>';
+                }
             }
-        }
 
-        // 4️⃣ جلب عدد الرسائل غير المقروءة
-        async function getUnreadCount() {
-            try {
-                const res = await fetch(`${API_BASE}/unread-count`, {
-                    method: "GET",
-                    headers: getAuthHeaders()
+            function renderConversations(list) {
+                if (!Array.isArray(list) || list.length === 0) {
+                    userListEl.innerHTML = '<div class="small-muted" style="padding:1rem;text-align:center">No conversations</div>';
+                    return;
+                }
+                userListEl.innerHTML = '';
+                list.forEach(c => {
+                    const a = document.createElement('a');
+                    a.href = '#';
+                    a.className = 'conversation-item';
+                    a.dataset.user = c.otherUserId;
+                    a.dataset.course = c.courseId;
+                    a.innerHTML = `
+            <img src="${escapeHtml(c.otherUserProfileImage || '') || 'https://mehedihtml.com/chatbox/assets/img/user.png'}" alt="">
+            <div class="meta">
+              <strong>${escapeHtml(c.otherUserName || 'Unknown')}</strong>
+              <small>${escapeHtml(c.courseTitle || '')}</small>
+              <small style="color:#9ca3af">${escapeHtml(c.lastMessage || '')}</small>
+            </div>
+          `;
+                    a.addEventListener('click', e => {
+                        e.preventDefault();
+                        selectConversation(a.dataset.user, a.dataset.course, a.querySelector('strong').textContent, a);
+                    });
+                    userListEl.appendChild(a);
                 });
-                const data = await res.json();
-                console.log("🔔 Unread Count:", data);
-                return data;
-            } catch (err) {
-                console.error("❌ Error fetching unread count:", err);
             }
-        }
 
-        // 5️⃣ تحديد رسالة كمقروءة
-        async function markMessageAsRead(messageId) {
-            try {
-                const res = await fetch(`${API_BASE}/mark-as-read`, {
-                    method: "POST",
-                    headers: getAuthHeaders(),
-                    body: JSON.stringify({ messageId })
-                });
-                const data = await res.json();
-                console.log("✅ Message Marked as Read:", data);
-                return data;
-            } catch (err) {
-                console.error("❌ Error marking message as read:", err);
+            // select conversation
+            async function selectConversation(otherUserId, courseId, otherUserName, anchorEl) {
+                // UI highlight
+                document.querySelectorAll('.conversation-item').forEach(i => i.classList.remove('active'));
+                if (anchorEl) anchorEl.classList.add('active');
+
+                current = { otherUserId, courseId, otherUserName };
+                chatUserName.textContent = otherUserName;
+                chatCourseTitle.textContent = ''; // set after messages (backend provides courseTitle in messages if needed)
+
+                // load messages immediately
+                await loadMessages(otherUserId, courseId);
+
+                // start polling for this conversation
+                if (pollTimer) clearInterval(pollTimer);
+                pollTimer = setInterval(() => {
+                    if (current) loadMessages(current.otherUserId, current.courseId, false);
+                }, POLL_INTERVAL);
             }
-        }
 
-        // 🧩 مثال عملي (تقدر تشيله بعدين)
-        // window.onload = async () => {
-        //     await getConversations();
-        //     // await sendMessage("user123", 2, "Hello!");
-        //     // await getMessages("user123", 2);
-        //     // await getUnreadCount();
-        //     // await markMessageAsRead(123);
-        // };
+            // load messages for conversation
+            async function loadMessages(otherUserId, courseId, markRead = true) {
+                chatMessagesEl.innerHTML = '<div class="small-muted" style="padding:1rem;text-align:center">Loading messages...</div>';
+                try {
+                    const res = await fetch(`${API_BASE}/messages/${encodeURIComponent(otherUserId)}/${encodeURIComponent(courseId)}`, { headers: getHeaders() });
+                    if (!res.ok) throw new Error('Failed to fetch messages');
+                    const messages = await res.json();
+
+                    // render
+                    chatMessagesEl.innerHTML = '';
+                    if (!Array.isArray(messages) || messages.length === 0) {
+                        chatMessagesEl.innerHTML = '<div class="small-muted" style="padding:1rem;text-align:center">No messages yet</div>';
+                        return;
+                    }
+
+                    // set course title if available on first message
+                    if (messages[0].courseTitle) chatCourseTitle.textContent = messages[0].courseTitle;
+
+                    messages.forEach(m => {
+                        const li = document.createElement('li');
+                        li.className = m.isFromCurrentUser ? 'repaly' : 'sender';
+                        li.innerHTML = `<p>${escapeHtml(m.content)}</p><div class="small-muted" style="font-size:.75rem;margin-top:.25rem">${new Date(m.sentAt).toLocaleString()}</div>`;
+                        chatMessagesEl.appendChild(li);
+                    });
+                    chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
+
+                    // backend notes: messages are marked read automatically when fetched — still expose function
+                    if (markRead && Array.isArray(messages)) {
+                        // try to mark last unread as read using available ids (optional)
+                        try {
+                            const unread = messages.filter(x => !x.isRead).map(x => x.id);
+                            if (unread.length) {
+                                // send mark-as-read for each (backend also offers one endpoint accept messageId)
+                                unread.forEach(id => markMessageAsRead(id).catch(() => { }));
+                            }
+                        } catch { }
+                    }
+                } catch (err) {
+                    console.error('Error loading messages', err);
+                    chatMessagesEl.innerHTML = '<div class="small-muted" style="padding:1rem;color:#c00;text-align:center">Unable to load messages</div>';
+                }
+            }
+
+            // send message
+            async function sendMessage() {
+                const txt = messageInput.value.trim();
+                if (!txt || !current) return;
+
+                // optimistic UI
+                const li = document.createElement('li');
+                li.className = 'repaly';
+                li.innerHTML = `<p>${escapeHtml(txt)}</p><div class="small-muted" style="font-size:.75rem;margin-top:.25rem">${new Date().toLocaleString()}</div>`;
+                chatMessagesEl.appendChild(li);
+                chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
+                messageInput.value = '';
+
+                try {
+                    const payload = {
+                        receiverId: current.otherUserId,
+                        courseId: Number(current.courseId),
+                        content: txt
+                    };
+                    const res = await fetch(`${API_BASE}/send-message`, {
+                        method: 'POST',
+                        headers: getHeaders(),
+                        body: JSON.stringify(payload)
+                    });
+                    if (!res.ok) throw new Error('Send failed');
+                    const data = await res.json();
+                    // after successful send, refresh messages to sync (server is source of truth)
+                    await loadMessages(current.otherUserId, current.courseId);
+                    return data;
+                } catch (err) {
+                    console.error('Send error', err);
+                    // mark failed visually
+                    li.querySelector('p').style.opacity = '0.6';
+                    li.querySelector('p').textContent += ' (not sent)';
+                    alert('Failed to send message. Try again.');
+                }
+            }
+
+            // mark message read
+            async function markMessageAsRead(messageId) {
+                try {
+                    const res = await fetch(`${API_BASE}/mark-as-read`, {
+                        method: 'POST',
+                        headers: getHeaders(),
+                        body: JSON.stringify({ messageId })
+                    });
+                    if (!res.ok) throw new Error('Mark read failed');
+                    return await res.json();
+                } catch (err) {
+                    console.error('markAsRead error', err);
+                }
+            }
+
+            // unread count (optional)
+            async function getUnreadCount() {
+                try {
+                    const res = await fetch(`${API_BASE}/unread-count`, { headers: getHeaders() });
+                    if (!res.ok) throw new Error('unread count failed');
+                    return await res.json();
+                } catch (err) {
+                    console.error('unread count error', err);
+                    return null;
+                }
+            }
+
+            // wire UI events
+            sendBtn.addEventListener('click', sendMessage);
+            messageInput.addEventListener('keypress', e => { if (e.key === 'Enter') sendMessage(); });
+            searchInput.addEventListener('input', () => {
+                const q = searchInput.value.trim().toLowerCase();
+                const filtered = conversations.filter(c => (c.otherUserName || '').toLowerCase().includes(q) || (c.courseTitle || '').toLowerCase().includes(q));
+                renderConversations(filtered);
+            });
+
+            // show role label
+            (function showRole() {
+                const user = getUser();
+                if (user && Array.isArray(user.roles) && user.roles.length) userRoleLabel.textContent = user.roles.join(', ');
+                else userRoleLabel.textContent = '';
+            })();
+
+            // initial load
+            loadConversations();
+
+            // cleanup on unload
+            window.addEventListener('beforeunload', () => { if (pollTimer) clearInterval(pollTimer); });
+
+        })();
     </script>
 
 
