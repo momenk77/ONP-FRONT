@@ -7,6 +7,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="chat-engine.js"></script>
+  <script src="chat-widget.js"></script>
 
   <style>
     html,
@@ -425,10 +427,34 @@
 
       const data = await res.json();
 
+      // Store course data globally for chat functionality
+      courseData = data;
+      console.log('Course data loaded:', courseData);
+
+      // If instructorId is missing, try to get it from instructor info
+      if (!courseData.instructorId && courseData.instructorName) {
+        console.log('Instructor ID missing, trying to fetch from instructor endpoint...');
+        try {
+          // Try to get instructor ID from the instructor name or other course data
+          await fetchInstructorId(courseData);
+        } catch (error) {
+          console.error('Failed to fetch instructor ID:', error);
+        }
+      }
+
       document.getElementById("course-title").textContent = data.title;
       document.getElementById("course-category").textContent = data.categoryName;
       document.getElementById("course-instructor").textContent = data.instructorName;
       document.getElementById("course-desc").textContent = data.description;
+
+      // Initialize chat widget with instructor data
+      if (window.ChatWidget && data.instructorId) {
+        window.chatWidget = new ChatWidget({
+          courseId: courseId,
+          instructorId: data.instructorId,
+          instructorName: data.instructorName
+        });
+      }
 
       contents = data.contents;
       const list = document.getElementById("lesson-list");
@@ -456,7 +482,13 @@
           if (!res.ok) throw new Error("Failed to start chat");
 
           const data = await res.json();
-          console.log("✅ Chat started:", data);
+          console.log("✅ Message sent successfully:", sendRes);
+
+          // Show success message
+          Toast.fire({
+            icon: 'success',
+            title: 'Chat started successfully!'
+          });
 
           // فتح صفحة الشات
           window.location.href = "chat.html";
@@ -627,57 +659,228 @@
         });
     }
 
+    // Function to fetch instructor ID if missing
+    async function fetchInstructorId(courseData) {
+      try {
+        console.log('Trying to find instructor ID for course:', courseData);
+
+        // Method 1: Try to get instructor info from enrolled courses
+        const enrolledRes = await fetch(`https://mazengad6-001-site1.rtempurl.com/api/Enrollment/my-courses`, {
+          headers: { Authorization: "Bearer " + token }
+        });
+
+        if (enrolledRes.ok) {
+          const enrolledCourses = await enrolledRes.json();
+          console.log('Enrolled courses response:', enrolledCourses);
+
+          // Handle different response formats
+          let courses = Array.isArray(enrolledCourses) ? enrolledCourses : enrolledCourses.courses || enrolledCourses.data || [];
+
+          const matchingCourse = courses.find(c => c.id == courseId || c.courseId == courseId);
+          console.log('Matching course from enrollment:', matchingCourse);
+
+          if (matchingCourse && matchingCourse.instructorId) {
+            courseData.instructorId = matchingCourse.instructorId;
+            console.log('Found instructor ID from enrolled courses:', matchingCourse.instructorId);
+            return;
+          }
+        }
+
+        // Method 2: Try to get from course public view (might have more details)
+        const publicRes = await fetch(`https://mazengad6-001-site1.rtempurl.com/api/Course/${courseId}/public-view`);
+        if (publicRes.ok) {
+          const publicData = await publicRes.json();
+          console.log('Public view response:', publicData);
+
+          if (publicData.instructorId) {
+            courseData.instructorId = publicData.instructorId;
+            console.log('Found instructor ID from public view:', publicData.instructorId);
+            return;
+          }
+        }
+
+        // Method 3: Try to get from course preview
+        const previewRes = await fetch(`https://mazengad6-001-site1.rtempurl.com/api/Course/${courseId}/preview`);
+        if (previewRes.ok) {
+          const previewData = await previewRes.json();
+          console.log('Preview response:', previewData);
+
+          if (previewData.instructorId) {
+            courseData.instructorId = previewData.instructorId;
+            console.log('Found instructor ID from preview:', previewData.instructorId);
+            return;
+          }
+        }
+
+        // Method 4: Since we have instructor name, use it as the receiverId
+        // Some chat systems accept instructor name as receiverId
+        if (courseData.instructorName) {
+          console.log('Using instructor name as ID:', courseData.instructorName);
+          courseData.instructorId = courseData.instructorName;
+          return;
+        }
+
+        console.warn('Could not find instructor ID for course:', courseData);
+
+      } catch (error) {
+        console.error('Error fetching instructor ID:', error);
+      }
+    }
+
     loadCourse();
-    // 🎯 زرار بدء المحادثة مع الدكتور
+    // Store course data globally for chat functionality
+    let courseData = null;
+
+    // 🎯 Message Instructor button - Enhanced with ChatEngine approach
     document.getElementById("start-chat-btn").addEventListener("click", async () => {
       const instructorName = document.getElementById("course-instructor").textContent.trim();
 
-      if (!instructorName) {
+      if (!instructorName || !courseData) {
         Swal.fire({
           icon: "warning",
-          title: "Instructor not found",
-          text: "Please wait until course details load.",
+          title: "Course data incomplete",
+          text: `Missing data: ${!instructorName ? 'instructor name' : ''} ${!courseData ? 'course data' : ''}`,
         });
+        console.error('Course data:', courseData);
         return;
       }
 
       try {
+        // Check for existing conversations first
         const res = await fetch(`https://mazengad6-001-site1.rtempurl.com/api/Chat/conversations`, {
           headers: { Authorization: "Bearer " + token }
         });
 
-        if (!res.ok) throw new Error("Failed to fetch conversations");
+        if (res.ok) {
+          const conversations = await res.json();
+          const existingChat = conversations.find(c =>
+            (c.otherUserName === instructorName || c.otherUserName === courseData.instructorName) &&
+            c.courseId == courseId
+          );
 
-        const conversations = await res.json();
-
-        // 👀 نحاول نلاقي محادثة موجودة مع نفس الدكتور (لو موجودة)
-        const existingChat = conversations.find(c => c.otherUserName === instructorName && c.courseId == courseId);
-
-        if (existingChat) {
-          // ✅ لو المحادثة موجودة — نفتح صفحة الشات ونديله الـ IDs
-          localStorage.setItem("chat_target", JSON.stringify({
-            otherUserId: existingChat.otherUserId,
-            courseId: existingChat.courseId,
-            userName: existingChat.otherUserName
-          }));
-        } else {
-          // ✅ لو مفيش محادثة، نبدأ واحدة جديدة
-          localStorage.setItem("chat_target", JSON.stringify({
-            otherUserId: data.instructorId || "unknown",
-            courseId: courseId,
-            userName: instructorName
-          }));
+          if (existingChat) {
+            // Existing conversation found - go to chat
+            localStorage.setItem("chat_target", JSON.stringify({
+              otherUserId: existingChat.otherUserId,
+              courseId: existingChat.courseId,
+              userName: existingChat.otherUserName
+            }));
+            window.location.href = "chat.html";
+            return;
+          }
         }
 
-        // 🚀 نفتح صفحة الشات
-        window.location.href = "chat.html"; // غيّر الاسم لو صفحة الشات اسمها مختلف
+        // No existing conversation - create new one
+        // Try to resolve instructor to actual user ID
+        let receiverId;
+
+        // First, try to get all users to find the instructor
+        try {
+          const usersRes = await fetch('https://mazengad6-001-site1.rtempurl.com/api/Admin/GetUsers', {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+
+          if (usersRes.ok) {
+            const users = await usersRes.json();
+            console.log(`Found ${users.length} users in system`);
+
+            // Try to find instructor by name
+            const targetName = courseData.instructorName || instructorName;
+            const instructor = users.find(user => {
+              const fullName = (user.fullName || '').toLowerCase();
+              const userName = (user.userName || '').toLowerCase();
+              const name = (user.name || '').toLowerCase();
+              const searchName = targetName.toLowerCase();
+
+              return fullName === searchName ||
+                userName === searchName ||
+                name === searchName ||
+                fullName.includes(searchName) ||
+                searchName.includes(fullName);
+            });
+
+            if (instructor) {
+              receiverId = String(instructor.id || instructor.userId);
+              console.log(`✅ Found instructor: ${instructor.fullName} (ID: ${receiverId})`);
+            } else {
+              // Show available instructors for debugging
+              const instructors = users.filter(u =>
+                u.roles && u.roles.includes('Instructor')
+              );
+              console.log('Available instructors:', instructors.map(i => ({
+                id: i.id || i.userId,
+                name: i.fullName || i.name
+              })));
+              throw new Error(`Instructor "${targetName}" not found. Available: ${instructors.map(i => i.fullName || i.name).join(', ')}`);
+            }
+          } else {
+            throw new Error('Could not access users list');
+          }
+        } catch (userLookupError) {
+          console.error('User lookup failed:', userLookupError);
+
+          // Fallback to using names/IDs as before
+          if (courseData.instructorId && courseData.instructorId.match(/^\d+$/)) {
+            receiverId = courseData.instructorId;
+            console.log('Fallback: Using instructor ID:', receiverId);
+          } else if (courseData.instructorName) {
+            receiverId = courseData.instructorName;
+            console.log('Fallback: Using instructor name:', receiverId);
+          } else if (instructorName) {
+            receiverId = instructorName;
+            console.log('Fallback: Using instructor name from DOM:', receiverId);
+          } else {
+            throw new Error('No instructor information available and user lookup failed');
+          }
+        }
+
+        const payload = {
+          receiverId: String(receiverId),
+          courseId: Number(courseId),
+          content: `Hello! I have a question about the course: ${courseData.title}`
+        };
+
+        console.log('Starting conversation with payload:', payload);
+
+        const sendRes = await fetch(`https://mazengad6-001-site1.rtempurl.com/api/Chat/send-message`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (!sendRes.ok) {
+          const errorText = await sendRes.text();
+          throw new Error(`Failed to start conversation: ${sendRes.status} ${errorText}`);
+        }
+
+        // Success - set target and go to chat
+        localStorage.setItem("chat_target", JSON.stringify({
+          otherUserId: receiverId,
+          courseId: courseId,
+          userName: instructorName
+        }));
+
+        Swal.fire({
+          icon: "success",
+          title: "Conversation started!",
+          text: "Redirecting to chat...",
+          timer: 1500,
+          showConfirmButton: false
+        });
+
+        setTimeout(() => {
+          window.location.href = "chat.html";
+        }, 1500);
 
       } catch (err) {
         console.error("❌ Error starting chat:", err);
         Swal.fire({
           icon: "error",
           title: "Unable to start chat",
-          text: "Please try again later.",
+          text: err.message || "Please try again later.",
         });
       }
     });
