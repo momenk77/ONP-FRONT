@@ -245,6 +245,14 @@
       background-color: #34495e;
     }
 
+    .action-btn.primary {
+      background-color: #3498db;
+    }
+
+    .action-btn.primary:hover {
+      background-color: #2980b9;
+    }
+
     .rating-group {
       display: flex;
       align-items: center;
@@ -318,11 +326,14 @@
       <h1 id="course-title">Loading...</h1>
       <div class="course-meta">
         <p><i class="fas fa-tag"></i> <span id="course-category"></span></p>
-        <p style="display: flex; align-items: center; gap: 10px;">
+        <p style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
           <i class="fas fa-chalkboard-teacher"></i>
           <span id="course-instructor"></span>
           <button id="start-chat-btn" class="action-btn secondary" style="padding: 0.3rem 0.8rem; font-size: 0.9rem;">
             <i class="fas fa-comments"></i> Message Instructor
+          </button>
+          <button id="live-sessions-btn" class="action-btn primary" style="padding: 0.3rem 0.8rem; font-size: 0.9rem;">
+            <i class="fas fa-video"></i> Live Review Sessions
           </button>
         </p>
 
@@ -400,9 +411,139 @@
     let contents = [];
     let selectedLessonId = null;
 
+    // Validate authentication
+    function validateAuth() {
+      const token = localStorage.getItem('token');
+      const user = localStorage.getItem('user');
+
+      if (!token || !user) {
+        throw new Error('Authentication required. Please log in again.');
+      }
+
+      try {
+        JSON.parse(user); // Validate user data format
+      } catch (e) {
+        throw new Error('Invalid user data. Please log in again.');
+      }
+
+      return { token, user: JSON.parse(user) };
+    }
+
+    // Decode JWT token to extract instructor information
+    function decodeJWTToken(token) {
+      try {
+        // JWT has 3 parts separated by dots: header.payload.signature
+        const parts = token.split('.');
+        if (parts.length !== 3) {
+          throw new Error('Invalid JWT format');
+        }
+
+        // Decode the payload (second part)
+        const payload = parts[1];
+        // Add padding if needed for base64 decoding
+        const paddedPayload = payload + '='.repeat((4 - payload.length % 4) % 4);
+        const decodedPayload = atob(paddedPayload.replace(/-/g, '+').replace(/_/g, '/'));
+
+        return JSON.parse(decodedPayload);
+      } catch (error) {
+        console.error('Error decoding JWT token:', error);
+        return null;
+      }
+    }
+
+    // Extract instructor ID for a specific course from token
+    function getInstructorIdFromToken(courseId) {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          console.log('No token available');
+          return null;
+        }
+
+        const tokenData = decodeJWTToken(token);
+        if (!tokenData) {
+          console.log('Could not decode token');
+          return null;
+        }
+
+        console.log('🔍 Decoded token data:', tokenData);
+
+        // Look for course-instructor mappings in token
+        // The backend developer mentioned instructor info is in the token
+        const possibleFields = [
+          'courses',
+          'enrollments',
+          'courseInstructors',
+          'instructors',
+          'courseData',
+          'userCourses'
+        ];
+
+        for (const field of possibleFields) {
+          if (tokenData[field]) {
+            console.log(`📋 Found ${field} in token:`, tokenData[field]);
+
+            // If it's an array, look for course match
+            if (Array.isArray(tokenData[field])) {
+              const courseMatch = tokenData[field].find(item =>
+                item.courseId == courseId ||
+                item.id == courseId ||
+                item.course_id == courseId
+              );
+
+              if (courseMatch) {
+                console.log(`✅ Found course match in ${field}:`, courseMatch);
+
+                // Look for instructor ID in various field names
+                const instructorId = courseMatch.instructorId ||
+                  courseMatch.instructor_id ||
+                  courseMatch.teacherId ||
+                  courseMatch.teacher_id ||
+                  (courseMatch.instructor && courseMatch.instructor.id) ||
+                  (courseMatch.instructor && courseMatch.instructor.userId);
+
+                if (instructorId) {
+                  console.log(`✅ Found instructor ID from token: ${instructorId}`);
+                  return String(instructorId);
+                }
+              }
+            }
+            // If it's an object, check if it contains course data
+            else if (typeof tokenData[field] === 'object') {
+              const courseData = tokenData[field][courseId] || tokenData[field][`course_${courseId}`];
+              if (courseData && courseData.instructorId) {
+                console.log(`✅ Found instructor ID from token object: ${courseData.instructorId}`);
+                return String(courseData.instructorId);
+              }
+            }
+          }
+        }
+
+        // Also check direct fields in token root
+        console.log('🔍 All token fields:', Object.keys(tokenData));
+
+        return null;
+      } catch (error) {
+        console.error('Error extracting instructor ID from token:', error);
+        return null;
+      }
+    }
+
     async function loadCourse() {
+      try {
+        // Validate authentication before API call
+        validateAuth();
+      } catch (authError) {
+        console.error('Authentication error:', authError);
+        window.location.href = "login.html";
+        return;
+      }
+
       const res = await fetch(`https://mazengad6-001-site1.rtempurl.com/api/Course/${courseId}/student-view`, {
-        headers: { Authorization: "Bearer " + token }
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
       });
 
       // ✅ لو Unauthorized، نحوله تلقائي
@@ -771,82 +912,153 @@
         }
 
         // No existing conversation - create new one
-        // Try to resolve instructor to actual user ID
-        let receiverId;
+        // Try to get instructor ID from course data
+        let receiverId = null;
 
-        // First, try to get all users to find the instructor
-        try {
-          const usersRes = await fetch('https://mazengad6-001-site1.rtempurl.com/api/Admin/GetUsers', {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-
-          if (usersRes.ok) {
-            const users = await usersRes.json();
-            console.log(`Found ${users.length} users in system`);
-
-            // Try to find instructor by name
-            const targetName = courseData.instructorName || instructorName;
-            const instructor = users.find(user => {
-              const fullName = (user.fullName || '').toLowerCase();
-              const userName = (user.userName || '').toLowerCase();
-              const name = (user.name || '').toLowerCase();
-              const searchName = targetName.toLowerCase();
-
-              return fullName === searchName ||
-                userName === searchName ||
-                name === searchName ||
-                fullName.includes(searchName) ||
-                searchName.includes(fullName);
+        // Method 1: Extract instructor ID from JWT token (most reliable according to backend)
+        receiverId = getInstructorIdFromToken(courseId);
+        if (receiverId) {
+          console.log(`✅ Found instructor ID from JWT token: ${receiverId}`);
+        }
+        // Method 2: Check if course data has instructor ID
+        else if (courseData.instructorId && String(courseData.instructorId).match(/^\d+$/)) {
+          receiverId = String(courseData.instructorId);
+          console.log(`✅ Using instructor ID from course data: ${receiverId}`);
+        }
+        // Method 2: Try to get course details to find instructor ID (most reliable)
+        else {
+          try {
+            console.log(`🔍 Fetching course details for instructor ID...`);
+            const courseRes = await fetch(`https://mazengad6-001-site1.rtempurl.com/api/Course/${courseId}`, {
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+              }
             });
 
-            if (instructor) {
-              receiverId = String(instructor.id || instructor.userId);
-              console.log(`✅ Found instructor: ${instructor.fullName} (ID: ${receiverId})`);
-            } else {
-              // Show available instructors for debugging
-              const instructors = users.filter(u =>
-                u.roles && u.roles.includes('Instructor')
-              );
-              console.log('Available instructors:', instructors.map(i => ({
-                id: i.id || i.userId,
-                name: i.fullName || i.name
-              })));
-              throw new Error(`Instructor "${targetName}" not found. Available: ${instructors.map(i => i.fullName || i.name).join(', ')}`);
-            }
-          } else {
-            throw new Error('Could not access users list');
-          }
-        } catch (userLookupError) {
-          console.error('User lookup failed:', userLookupError);
+            if (courseRes.ok) {
+              const courseDetails = await courseRes.json();
+              console.log('📋 Course details response:', courseDetails);
 
-          // Fallback to using names/IDs as before
-          if (courseData.instructorId && courseData.instructorId.match(/^\d+$/)) {
-            receiverId = courseData.instructorId;
-            console.log('Fallback: Using instructor ID:', receiverId);
-          } else if (courseData.instructorName) {
-            receiverId = courseData.instructorName;
-            console.log('Fallback: Using instructor name:', receiverId);
-          } else if (instructorName) {
-            receiverId = instructorName;
-            console.log('Fallback: Using instructor name from DOM:', receiverId);
-          } else {
-            throw new Error('No instructor information available and user lookup failed');
+              // Try different possible instructor ID fields
+              if (courseDetails.instructorId) {
+                receiverId = String(courseDetails.instructorId);
+                console.log(`✅ Found instructor ID from courseDetails.instructorId: ${receiverId}`);
+              } else if (courseDetails.instructor && courseDetails.instructor.id) {
+                receiverId = String(courseDetails.instructor.id);
+                console.log(`✅ Found instructor ID from courseDetails.instructor.id: ${receiverId}`);
+              } else if (courseDetails.instructor && courseDetails.instructor.userId) {
+                receiverId = String(courseDetails.instructor.userId);
+                console.log(`✅ Found instructor ID from courseDetails.instructor.userId: ${receiverId}`);
+              } else if (courseDetails.createdBy) {
+                receiverId = String(courseDetails.createdBy);
+                console.log(`✅ Using course creator ID as instructor: ${receiverId}`);
+              } else {
+                console.log('❌ Available course details fields:', Object.keys(courseDetails));
+                console.log('❌ No instructor ID found in any expected field');
+              }
+            } else {
+              const errorText = await courseRes.text();
+              console.log(`❌ Could not fetch course details: ${courseRes.status} ${errorText}`);
+            }
+          } catch (error) {
+            console.log('❌ Error fetching course details:', error.message);
           }
         }
 
+        // Method 3: Try enrollment data if still no instructor ID
+        if (!receiverId) {
+          try {
+            console.log(`🔍 Checking enrollment data for instructor info...`);
+            const enrollmentRes = await fetch(`https://mazengad6-001-site1.rtempurl.com/api/Enrollment/my-courses`, {
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+              }
+            });
+
+            if (enrollmentRes.ok) {
+              const enrollments = await enrollmentRes.json();
+              console.log('📋 Enrollment data:', enrollments);
+              const enrollment = enrollments.find(e => e.courseId == courseId);
+
+              if (enrollment) {
+                console.log('📋 Found enrollment:', enrollment);
+                if (enrollment.instructorId) {
+                  receiverId = String(enrollment.instructorId);
+                  console.log(`✅ Found instructor ID from enrollment data: ${receiverId}`);
+                }
+              }
+            }
+          } catch (error) {
+            console.log('❌ Error checking enrollment data:', error.message);
+          }
+        }
+
+        // If we still don't have receiverId, show detailed error
+        if (!receiverId) {
+          const errorDetails = {
+            courseId: courseId,
+            courseTitle: courseData?.title || 'Unknown',
+            instructorName: courseData?.instructorName || instructorName || 'Not available',
+            courseDataInstructorId: courseData?.instructorId || 'Not available'
+          };
+
+          console.error('❌ Failed to find instructor ID. Details:', errorDetails);
+
+          throw new Error(`Cannot find instructor ID for this course.
+
+Debugging info:
+- Course ID: ${courseId}
+- Course Title: ${courseData?.title || 'Unknown'}
+- Instructor Name: ${courseData?.instructorName || instructorName || 'Not available'}
+- Instructor ID in course data: ${courseData?.instructorId || 'Not available'}
+
+This usually means:
+1. The course doesn't have an assigned instructor
+2. The instructor data is missing from the API response
+3. There may be a permission issue accessing instructor information
+
+Please check the browser console for more details or contact support.`);
+        }
+
+        // Skip the user lookup and use the instructor ID directly
+        console.log(`📤 Using instructor ID: ${receiverId}`);
+
+        // User lookup code removed - using instructor ID directly from course data
+        // Old user lookup code removed - now using instructor ID directly
+
+        // Validate authentication before sending message
+        try {
+          validateAuth();
+        } catch (authError) {
+          console.error('Authentication error:', authError);
+          throw new Error('Authentication required. Please log in again.');
+        }
+
+        // Validate data types and create payload in exact format expected by backend (SendMessageDto)
+        const validatedReceiverId = String(receiverId);
+        const validatedCourseId = Number(courseId);
+        const validatedContent = String(`Hello! I have a question about the course: ${courseData.title}`);
+
+        // Validate required fields
+        if (!validatedReceiverId || isNaN(validatedCourseId) || !validatedContent) {
+          throw new Error('Invalid payload: receiverId, courseId, and content are required');
+        }
+
         const payload = {
-          receiverId: String(receiverId),
-          courseId: Number(courseId),
-          content: `Hello! I have a question about the course: ${courseData.title}`
+          "receiverId": validatedReceiverId,
+          "courseId": validatedCourseId,
+          "content": validatedContent
         };
 
-        console.log('Starting conversation with payload:', payload);
+        console.log('Starting conversation with validated payload:', JSON.stringify(payload, null, 2));
 
         const sendRes = await fetch(`https://mazengad6-001-site1.rtempurl.com/api/Chat/send-message`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`
+            'Authorization': `Bearer ${token}`
           },
           body: JSON.stringify(payload)
         });
@@ -881,6 +1093,20 @@
           icon: "error",
           title: "Unable to start chat",
           text: err.message || "Please try again later.",
+        });
+      }
+    });
+
+    // 🎯 Live Review Sessions button
+    document.getElementById("live-sessions-btn").addEventListener("click", () => {
+      const courseId = new URLSearchParams(window.location.search).get('id');
+      if (courseId) {
+        window.location.href = `course-live-sessions.html?courseId=${courseId}`;
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: "Course ID not found. Please try again.",
         });
       }
     });

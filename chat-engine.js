@@ -8,7 +8,6 @@ class ChatEngine {
     constructor(config = {}) {
         this.config = {
             apiBase: config.apiBase || 'https://mazengad6-001-site1.rtempurl.com/api/Chat',
-            wsBase: config.wsBase || 'wss://mazengad6-001-site1.rtempurl.com/ws/chat',
             userApiBase: config.userApiBase || 'https://mazengad6-001-site1.rtempurl.com/api',
             maxRetries: config.maxRetries || 3,
             retryDelay: config.retryDelay || 500,
@@ -24,11 +23,8 @@ class ChatEngine {
         this.userCache = new Map(); // Cache for user lookups
         this.courseCache = new Map(); // Cache for course data
 
-        // Connection management
-        this.ws = null;
-        this.reconnectAttempts = 0;
+        // Connection management - HTTP only
         this.pollTimer = null;
-        this.isConnected = false;
 
         // Event handlers
         this.eventHandlers = {
@@ -43,8 +39,9 @@ class ChatEngine {
     }
 
     init() {
-        this.connectWebSocket();
+        // HTTP-only initialization
         this.setupPeriodicSync();
+        this.emit('connectionChanged', { status: 'http-only', message: 'Using HTTP API only' });
     }
 
     // Event system
@@ -73,105 +70,130 @@ class ChatEngine {
         }
     }
 
-    getHeaders() {
-        const headers = { 'Content-Type': 'application/json' };
-        const token = this.getToken();
-        if (token) headers['Authorization'] = `Bearer ${token}`;
-        return headers;
+    // Decode JWT token to extract instructor information
+    decodeJWTToken(token) {
+        try {
+            // JWT has 3 parts separated by dots: header.payload.signature
+            const parts = token.split('.');
+            if (parts.length !== 3) {
+                throw new Error('Invalid JWT format');
+            }
+
+            // Decode the payload (second part)
+            const payload = parts[1];
+            // Add padding if needed for base64 decoding
+            const paddedPayload = payload + '='.repeat((4 - payload.length % 4) % 4);
+            const decodedPayload = atob(paddedPayload.replace(/-/g, '+').replace(/_/g, '/'));
+
+            return JSON.parse(decodedPayload);
+        } catch (error) {
+            console.error('Error decoding JWT token:', error);
+            return null;
+        }
     }
 
-    // Enhanced WebSocket connection with better error handling
-    async connectWebSocket() {
+    // Extract instructor ID for a specific course from token
+    getInstructorIdFromToken(courseId) {
         try {
             const token = this.getToken();
             if (!token) {
-                console.log('No token available for WebSocket connection');
-                this.emit('connectionChanged', { status: 'no-auth', message: 'Authentication required' });
-                return;
+                console.log('No token available');
+                return null;
             }
 
-            console.log('Attempting WebSocket connection...');
-            this.ws = new WebSocket(`${this.config.wsBase}?token=${encodeURIComponent(token)}`);
+            const tokenData = this.decodeJWTToken(token);
+            if (!tokenData) {
+                console.log('Could not decode token');
+                return null;
+            }
 
-            this.ws.onopen = () => {
-                console.log('✅ WebSocket connected successfully');
-                this.isConnected = true;
-                this.reconnectAttempts = 0;
-                this.emit('connectionChanged', { status: 'connected', message: 'WebSocket Connected' });
-                this.sendQueuedMessages();
-            };
+            console.log('🔍 Decoded token data:', tokenData);
 
-            this.ws.onmessage = (event) => {
-                try {
-                    const data = JSON.parse(event.data);
-                    this.handleWebSocketMessage(data);
-                } catch (err) {
-                    console.error('WebSocket message parse error:', err);
+            // Look for course-instructor mappings in token
+            const possibleFields = [
+                'courses',
+                'enrollments',
+                'courseInstructors',
+                'instructors',
+                'courseData',
+                'userCourses'
+            ];
+
+            for (const field of possibleFields) {
+                if (tokenData[field]) {
+                    console.log(`📋 Found ${field} in token:`, tokenData[field]);
+
+                    // If it's an array, look for course match
+                    if (Array.isArray(tokenData[field])) {
+                        const courseMatch = tokenData[field].find(item =>
+                            item.courseId == courseId ||
+                            item.id == courseId ||
+                            item.course_id == courseId
+                        );
+
+                        if (courseMatch) {
+                            console.log(`✅ Found course match in ${field}:`, courseMatch);
+
+                            // Look for instructor ID in various field names
+                            const instructorId = courseMatch.instructorId ||
+                                courseMatch.instructor_id ||
+                                courseMatch.teacherId ||
+                                courseMatch.teacher_id ||
+                                (courseMatch.instructor && courseMatch.instructor.id) ||
+                                (courseMatch.instructor && courseMatch.instructor.userId);
+
+                            if (instructorId) {
+                                console.log(`✅ Found instructor ID from token: ${instructorId}`);
+                                return String(instructorId);
+                            }
+                        }
+                    }
+                    // If it's an object, check if it contains course data
+                    else if (typeof tokenData[field] === 'object') {
+                        const courseData = tokenData[field][courseId] || tokenData[field][`course_${courseId}`];
+                        if (courseData && courseData.instructorId) {
+                            console.log(`✅ Found instructor ID from token object: ${courseData.instructorId}`);
+                            return String(courseData.instructorId);
+                        }
+                    }
                 }
-            };
+            }
 
-            this.ws.onclose = (event) => {
-                console.log('WebSocket disconnected, code:', event.code);
-                this.isConnected = false;
-                this.emit('connectionChanged', { status: 'disconnected', message: 'WebSocket Disconnected - Using REST' });
+            // Also check direct fields in token root
+            console.log('🔍 All token fields:', Object.keys(tokenData));
 
-                if (event.code !== 1000) { // Not a normal closure
-                    this.scheduleReconnect();
-                }
-            };
-
-            this.ws.onerror = (error) => {
-                console.error('WebSocket error:', error);
-                this.isConnected = false;
-                this.emit('connectionChanged', { status: 'error', message: 'WebSocket Failed - Using REST Only' });
-            };
-
-            // Connection timeout
-            setTimeout(() => {
-                if (this.ws && this.ws.readyState === WebSocket.CONNECTING) {
-                    console.warn('WebSocket connection timeout');
-                    this.ws.close();
-                    this.emit('connectionChanged', { status: 'timeout', message: 'WebSocket Timeout - Using REST Only' });
-                }
-            }, 10000);
-
+            return null;
         } catch (error) {
-            console.warn('WebSocket connection failed, using REST only:', error);
-            this.emit('connectionChanged', { status: 'rest-only', message: 'WebSocket Not Available - Using REST Only' });
+            console.error('Error extracting instructor ID from token:', error);
+            return null;
         }
     }
 
-    scheduleReconnect() {
-        if (this.reconnectAttempts >= this.config.maxRetries) {
-            console.error('Max WebSocket reconnection attempts reached');
-            return;
+    getHeaders() {
+        const headers = { 'Content-Type': 'application/json' };
+        const token = this.getToken();
+        if (token) {
+            // Ensure proper Bearer token format
+            headers['Authorization'] = `Bearer ${token}`;
         }
-
-        const delay = this.config.retryDelay * Math.pow(2, this.reconnectAttempts) + Math.random() * 250;
-        setTimeout(() => {
-            this.reconnectAttempts++;
-            this.connectWebSocket();
-        }, Math.min(delay, 30000));
+        return headers;
     }
 
-    handleWebSocketMessage(data) {
-        switch (data.type) {
-            case 'message':
-                this.handleIncomingMessage(data.payload);
-                break;
-            case 'ack':
-                this.handleMessageAck(data.payload);
-                break;
-            case 'typing':
-                this.handleTypingIndicator(data.payload);
-                break;
-            case 'user_status':
-                this.handleUserStatus(data.payload);
-                break;
-            default:
-                console.warn('Unknown WebSocket message type:', data.type);
+    // Validate authentication before making API calls
+    validateAuth() {
+        const token = this.getToken();
+        const user = this.getUser();
+
+        if (!token || !user) {
+            throw new Error('Authentication required. Please log in again.');
         }
+
+        return { token, user };
     }
+
+    // HTTP-only communication - no WebSocket needed
+
+    // WebSocket methods removed - using HTTP only
 
     // Enhanced conversation loading with caching
     async loadConversations(forceRefresh = false) {
@@ -180,6 +202,9 @@ class ChatEngine {
         }
 
         try {
+            // Validate authentication before API call
+            this.validateAuth();
+
             const res = await fetch(`${this.config.apiBase}/conversations`, {
                 headers: this.getHeaders()
             });
@@ -218,6 +243,9 @@ class ChatEngine {
     // Enhanced message loading with better error handling
     async loadMessages(otherUserId, courseId, markRead = true) {
         try {
+            // Validate authentication before API call
+            this.validateAuth();
+
             const res = await fetch(
                 `${this.config.apiBase}/messages/${encodeURIComponent(otherUserId)}/${encodeURIComponent(courseId)}`,
                 { headers: this.getHeaders() }
@@ -245,7 +273,7 @@ class ChatEngine {
         }
     }
 
-    // Enhanced user resolution with multiple strategies
+    // Enhanced user resolution with JWT token support
     async resolveUser(identifier, courseId = null) {
         console.log(`🔍 Resolving user: "${identifier}", courseId: ${courseId}`);
 
@@ -256,7 +284,19 @@ class ChatEngine {
             return cached;
         }
 
-        // Strategy 1: Direct user ID (numeric)
+        // Strategy 1: Extract instructor ID from JWT token (most reliable)
+        if (courseId) {
+            const instructorId = this.getInstructorIdFromToken(courseId);
+            if (instructorId) {
+                const user = { id: instructorId, name: identifier, resolved: true };
+                this.userCache.set(identifier, user);
+                this.userCache.set(instructorId, user);
+                console.log(`✅ Found instructor ID from JWT token:`, user);
+                return user;
+            }
+        }
+
+        // Strategy 2: Direct user ID (numeric) - this is what we expect
         if (typeof identifier === 'string' && identifier.match(/^\d+$/)) {
             const user = { id: identifier, name: `User ${identifier}`, resolved: true };
             this.userCache.set(identifier, user);
@@ -264,17 +304,7 @@ class ChatEngine {
             return user;
         }
 
-        // Strategy 2: Try multiple user lookup endpoints FIRST (most reliable)
-        console.log(`🔍 Trying API lookup for: "${identifier}"`);
-        const resolvedUser = await this.findUserByName(identifier);
-        if (resolvedUser && resolvedUser.id) {
-            this.userCache.set(identifier, resolvedUser);
-            this.userCache.set(resolvedUser.id, resolvedUser);
-            console.log(`✅ Found user via API lookup:`, resolvedUser);
-            return resolvedUser;
-        }
-
-        // Strategy 3: Check existing conversations for this user name
+        // Strategy 3: Check existing conversations for this user
         try {
             console.log(`🔍 Checking existing conversations...`);
             const conversations = await this.loadConversations();
@@ -299,21 +329,9 @@ class ChatEngine {
             console.log('❌ Could not check existing conversations:', error.message);
         }
 
-        // Strategy 4: Course-based instructor lookup
-        if (courseId) {
-            console.log(`🔍 Trying course-based instructor lookup for course ${courseId}...`);
-            const instructor = await this.findCourseInstructor(courseId);
-            if (instructor && instructor.id) {
-                this.userCache.set(identifier, instructor);
-                this.userCache.set(instructor.id, instructor);
-                console.log(`✅ Found instructor via course lookup:`, instructor);
-                return instructor;
-            }
-        }
-
-        // Strategy 5: If all else fails, throw an error instead of using unresolved format
+        // If we can't resolve the user, throw an error with helpful message
         console.error(`❌ Could not resolve user: "${identifier}"`);
-        throw new Error(`User not found: "${identifier}". Please check if this user exists in the system.`);
+        throw new Error(`User ID "${identifier}" not found. The JWT token may not contain instructor information for course ${courseId}. Please ensure you're enrolled in the course and the token is valid.`);
     }
 
     // Multiple user lookup strategies
@@ -325,6 +343,7 @@ class ChatEngine {
             async () => {
                 try {
                     console.log(`📡 Trying Admin/GetUsers endpoint...`);
+                    this.validateAuth(); // Validate auth before API call
                     const res = await fetch(
                         `${this.config.userApiBase}/Admin/GetUsers`,
                         { headers: this.getHeaders() }
@@ -383,6 +402,21 @@ class ChatEngine {
                             return resolvedUser;
                         } else {
                             console.log(`❌ No user found matching "${name}" in ${users.length} users`);
+
+                            // Log available users for debugging
+                            console.log('Available users:', users.slice(0, 5).map(u => ({
+                                id: u.id || u.userId,
+                                name: u.fullName || u.name,
+                                userName: u.userName
+                            })));
+
+                            // Check if there are any instructors at all
+                            const instructors = users.filter(u => u.roles && u.roles.includes('Instructor'));
+                            if (instructors.length === 0) {
+                                console.log('⚠️ No users with "Instructor" role found in system!');
+                            } else {
+                                console.log(`Available instructors:`, instructors.map(i => i.fullName || i.name));
+                            }
                         }
                     } else {
                         console.log(`❌ Admin endpoint failed: ${res.status} ${res.statusText}`);
@@ -397,6 +431,7 @@ class ChatEngine {
             async () => {
                 try {
                     console.log(`📡 Trying User/lookup endpoint...`);
+                    this.validateAuth(); // Validate auth before API call
                     const res = await fetch(
                         `${this.config.userApiBase}/User/lookup?name=${encodeURIComponent(name)}${role ? `&role=${role}` : ''}`,
                         { headers: this.getHeaders() }
@@ -543,21 +578,25 @@ class ChatEngine {
     }
 
     async sendMessageToServer(message) {
+        // Validate authentication before sending
+        this.validateAuth();
+
+        // Create payload in exact format expected by backend (SendMessageDto)
         const payload = {
-            receiverId: message.receiverId,
-            courseId: message.courseId,
-            content: message.content,
-            messageId: message.id
+            "receiverId": String(message.receiverId),
+            "courseId": Number(message.courseId),
+            "content": String(message.content)
         };
 
-        // Try WebSocket first
-        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-            this.sendViaWebSocket(message);
-            return;
+        // Validate payload format
+        if (!payload.receiverId || isNaN(payload.courseId) || !payload.content) {
+            throw new Error('Invalid message payload: receiverId, courseId, and content are required');
         }
 
-        // Fallback to REST
-        const res = await fetch(`${this.config.apiBase}/send-message`, {
+        console.log('Sending message payload:', JSON.stringify(payload, null, 2));
+
+        // Use HTTP fetch only - no WebSocket
+        const res = await fetch(`https://mazengad6-001-site1.rtempurl.com/api/Chat/send-message`, {
             method: 'POST',
             headers: this.getHeaders(),
             body: JSON.stringify(payload)
@@ -575,19 +614,7 @@ class ChatEngine {
         });
     }
 
-    sendViaWebSocket(message) {
-        if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
-
-        this.ws.send(JSON.stringify({
-            type: 'send',
-            payload: {
-                receiverId: message.receiverId,
-                courseId: message.courseId,
-                content: message.content,
-                messageId: message.id
-            }
-        }));
-    }
+    // sendViaWebSocket method removed - using HTTP only
 
     handleMessageAck(data) {
         const message = this.messageQueue.get(data.messageId);
@@ -654,6 +681,9 @@ class ChatEngine {
         if (!Array.isArray(messageIds) || messageIds.length === 0) return;
 
         try {
+            // Validate authentication before API calls
+            this.validateAuth();
+
             const promises = messageIds.map(id =>
                 fetch(`${this.config.apiBase}/mark-as-read`, {
                     method: 'POST',
@@ -682,9 +712,7 @@ class ChatEngine {
         if (this.pollTimer) {
             clearInterval(this.pollTimer);
         }
-        if (this.ws) {
-            this.ws.close();
-        }
+        // WebSocket cleanup removed - HTTP only
         this.messageQueue.clear();
         this.inFlightSends.clear();
         this.userCache.clear();

@@ -117,6 +117,29 @@
     </style>
 
     <style>
+        /* Chat Page Styles */
+        body {
+            background-color: #f9fafb;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+        }
+
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
+        }
+
+        main {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: calc(100vh - 100px);
+            padding: 1rem;
+        }
+
         .chat-message-list {
             list-style: none;
             margin: 0;
@@ -146,67 +169,6 @@
             margin-left: auto;
         }
 
-        /* ✅ Chat Page Styles */
-        body {
-            background-color: #f9fafb;
-            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-        }
-
-        /* ✅ خلي الـnavbar ثابت فوق */
-        header {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            z-index: 1000;
-        }
-
-        main {
-            /* علشان الـnavbar ياخد مساحة فوق */
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: calc(100vh - 100px);
-            padding: 1rem;
-        }
-
-        .chat-container {
-            width: 100%;
-            max-width: 700px;
-            background: #fff;
-            border-radius: 12px;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-            display: flex;
-            flex-direction: column;
-            height: 75vh;
-            overflow: hidden;
-        }
-
-        .chat-header {
-            background: #1f2937;
-            color: white;
-            padding: 1rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .chat-header h2 {
-            margin: 0;
-            font-size: 1.1rem;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .chat-messages {
-            flex: 1;
-            padding: 1rem;
-            overflow-y: auto;
-            background-color: #f3f4f6;
-        }
-
         .message {
             max-width: 75%;
             padding: 10px 15px;
@@ -229,36 +191,6 @@
             color: #111827;
             margin-right: auto;
             border-top-left-radius: 0;
-        }
-
-        .chat-input {
-            display: flex;
-            padding: 10px;
-            background-color: #fff;
-            border-top: 1px solid #ddd;
-        }
-
-        .chat-input input {
-            flex: 1;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            outline: none;
-        }
-
-        .chat-input button {
-            background-color: #3b82f6;
-            color: white;
-            border: none;
-            padding: 10px 16px;
-            border-radius: 6px;
-            margin-left: 8px;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-
-        .chat-input button:hover {
-            background-color: #2563eb;
         }
 
         /* Message Status Indicators */
@@ -618,6 +550,12 @@
             display: flex;
             flex-direction: column;
             background: #fff;
+            width: 100%;
+            max-width: 700px;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            height: 75vh;
+            overflow: hidden;
         }
 
         .chat-header {
@@ -627,6 +565,14 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
+        }
+
+        .chat-header h2 {
+            margin: 0;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .chat-messages {
@@ -659,6 +605,11 @@
             border: none;
             border-radius: 6px;
             cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .chat-input button:hover {
+            background-color: #2563eb;
         }
     </style>
 
@@ -728,11 +679,7 @@
         </div>
     </div>
 
-    <!-- ✅ Scripts -->
-
-
-
-    <!-- Navbar Scripts -->
+    <!-- Scripts -->
     <script>
         function loadCSS(href) {
             return new Promise((resolve, reject) => {
@@ -767,42 +714,7 @@
         function toggleMenu() {
             document.getElementById("nav-links").classList.toggle("show");
         }
-
-
     </script>
-    <!-- <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            const sendBtn = document.getElementById("send-btn");
-            const messageInput = document.getElementById("message-input");
-            const chatMessages = document.getElementById("chat-messages");
-
-            // لما المستخدم يضغط على الزر
-            sendBtn.addEventListener("click", sendMessage);
-
-            // أو يضغط Enter
-            messageInput.addEventListener("keypress", function (e) {
-                if (e.key === "Enter") {
-                    sendMessage();
-                }
-            });
-
-            function sendMessage() {
-                const message = messageInput.value.trim();
-                if (message === "") return;
-
-                // ✅ هنا بنضيف الرسالة في واجهة المستخدم
-                const li = document.createElement("li");
-                li.textContent = message;
-                chatMessages.appendChild(li);
-
-                // نفضي الخانة
-                messageInput.value = "";
-
-
-            }
-        });
-    </script> -->
-
 
     <!-- Load the enhanced chat engine -->
     <script src="chat-engine.js"></script>
@@ -813,14 +725,13 @@
          - Better instructor resolution and user lookup
          - Enhanced error handling and retry mechanisms
          - Improved caching and performance
-         - Better WebSocket management
+         - HTTP-only communication (WebSocket removed)
          **************************************************************************/
 
         (function () {
-            // Initialize the chat engine
+            // Initialize the chat engine - HTTP only
             const chatEngine = new ChatEngine({
                 apiBase: "https://mazengad6-001-site1.rtempurl.com/api/Chat",
-                wsBase: "wss://mazengad6-001-site1.rtempurl.com/ws/chat",
                 userApiBase: "https://mazengad6-001-site1.rtempurl.com/api"
             });
 
@@ -848,11 +759,127 @@
                 catch { return null; }
             }
 
+            // Decode JWT token to extract instructor information
+            function decodeJWTToken(token) {
+                try {
+                    // JWT has 3 parts separated by dots: header.payload.signature
+                    const parts = token.split('.');
+                    if (parts.length !== 3) {
+                        throw new Error('Invalid JWT format');
+                    }
+
+                    // Decode the payload (second part)
+                    const payload = parts[1];
+                    // Add padding if needed for base64 decoding
+                    const paddedPayload = payload + '='.repeat((4 - payload.length % 4) % 4);
+                    const decodedPayload = atob(paddedPayload.replace(/-/g, '+').replace(/_/g, '/'));
+
+                    return JSON.parse(decodedPayload);
+                } catch (error) {
+                    console.error('Error decoding JWT token:', error);
+                    return null;
+                }
+            }
+
+            // Extract instructor ID for a specific course from token
+            function getInstructorIdFromToken(courseId) {
+                try {
+                    const token = localStorage.getItem('token');
+                    if (!token) {
+                        console.log('No token available');
+                        return null;
+                    }
+
+                    const tokenData = decodeJWTToken(token);
+                    if (!tokenData) {
+                        console.log('Could not decode token');
+                        return null;
+                    }
+
+                    console.log('🔍 Decoded token data:', tokenData);
+
+                    // Look for course-instructor mappings in token
+                    // The backend developer mentioned instructor info is in the token
+                    // Common JWT claim names for course data:
+                    const possibleFields = [
+                        'courses',
+                        'enrollments',
+                        'courseInstructors',
+                        'instructors',
+                        'courseData',
+                        'userCourses'
+                    ];
+
+                    for (const field of possibleFields) {
+                        if (tokenData[field]) {
+                            console.log(`📋 Found ${field} in token:`, tokenData[field]);
+
+                            // If it's an array, look for course match
+                            if (Array.isArray(tokenData[field])) {
+                                const courseMatch = tokenData[field].find(item =>
+                                    item.courseId == courseId ||
+                                    item.id == courseId ||
+                                    item.course_id == courseId
+                                );
+
+                                if (courseMatch) {
+                                    console.log(`✅ Found course match in ${field}:`, courseMatch);
+
+                                    // Look for instructor ID in various field names
+                                    const instructorId = courseMatch.instructorId ||
+                                        courseMatch.instructor_id ||
+                                        courseMatch.teacherId ||
+                                        courseMatch.teacher_id ||
+                                        (courseMatch.instructor && courseMatch.instructor.id) ||
+                                        (courseMatch.instructor && courseMatch.instructor.userId);
+
+                                    if (instructorId) {
+                                        console.log(`✅ Found instructor ID from token: ${instructorId}`);
+                                        return String(instructorId);
+                                    }
+                                }
+                            }
+                            // If it's an object, check if it contains course data
+                            else if (typeof tokenData[field] === 'object') {
+                                const courseData = tokenData[field][courseId] || tokenData[field][`course_${courseId}`];
+                                if (courseData && courseData.instructorId) {
+                                    console.log(`✅ Found instructor ID from token object: ${courseData.instructorId}`);
+                                    return String(courseData.instructorId);
+                                }
+                            }
+                        }
+                    }
+
+                    // Also check direct fields in token root
+                    console.log('🔍 All token fields:', Object.keys(tokenData));
+
+                    return null;
+                } catch (error) {
+                    console.error('Error extracting instructor ID from token:', error);
+                    return null;
+                }
+            }
+
             function getHeaders() {
                 const headers = { 'Content-Type': 'application/json' };
                 const token = localStorage.getItem('token');
-                if (token) headers['Authorization'] = `Bearer ${token}`;
+                if (token) {
+                    // Ensure proper Bearer token format
+                    headers['Authorization'] = `Bearer ${token}`;
+                }
                 return headers;
+            }
+
+            // Validate authentication before making API calls
+            function validateAuth() {
+                const token = localStorage.getItem('token');
+                const user = getUser();
+
+                if (!token || !user) {
+                    throw new Error('Authentication required. Please log in again.');
+                }
+
+                return { token, user };
             }
 
             // Setup chat engine event handlers
@@ -1072,100 +1099,7 @@
                 chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
             }
 
-            async function sendMessageToServer(message) {
-                const payload = {
-                    receiverId: message.receiverId,
-                    courseId: message.courseId,
-                    content: message.content,
-                    messageId: message.id // Include client-generated ID for idempotency
-                };
-
-                // Try WebSocket first
-                if (ws && ws.readyState === WebSocket.OPEN) {
-                    sendViaWebSocket(message);
-                    return;
-                }
-
-                // Fallback to REST
-                const res = await fetch(`${API_BASE}/send-message`, {
-                    method: 'POST',
-                    headers: getHeaders(),
-                    body: JSON.stringify(payload)
-                });
-
-                if (!res.ok) {
-                    throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-                }
-
-                const data = await res.json();
-                handleMessageAck({ messageId: message.id, serverTimestamp: data.timestamp });
-            }
-
-            function sendViaWebSocket(message) {
-                if (!ws || ws.readyState !== WebSocket.OPEN) return;
-
-                ws.send(JSON.stringify({
-                    type: 'send',
-                    payload: {
-                        receiverId: message.receiverId,
-                        courseId: message.courseId,
-                        content: message.content,
-                        messageId: message.id
-                    }
-                }));
-            }
-
-            function handleMessageAck(data) {
-                const message = messageQueue.get(data.messageId);
-                if (message) {
-                    message.status = 'sent';
-                    message.serverTimestamp = data.serverTimestamp;
-                    updateMessageStatus(data.messageId, 'sent');
-                    inFlightSends.delete(data.messageId);
-                }
-            }
-
-            function handleSendError(messageId, error) {
-                const message = messageQueue.get(messageId);
-                if (!message) return;
-
-                inFlightSends.delete(messageId);
-
-                if (isRetryableError(error) && message.retryCount < MAX_RETRIES) {
-                    message.retryCount++;
-                    message.status = 'retrying';
-                    updateMessageStatus(messageId, 'retrying');
-
-                    const delay = RETRY_BASE_DELAY * Math.pow(2, message.retryCount - 1) + Math.random() * 250;
-                    setTimeout(() => retryMessage(messageId), Math.min(delay, 30000));
-                } else {
-                    message.status = 'failed';
-                    message.error = error.message;
-                    updateMessageStatus(messageId, 'failed');
-                    addRetryButton(messageId);
-                }
-            }
-
-            function isRetryableError(error) {
-                return error.name === 'TypeError' ||
-                    error.message.includes('fetch') ||
-                    (error.status >= 500 && error.status < 600);
-            }
-
-            async function retryMessage(messageId) {
-                const message = messageQueue.get(messageId);
-                if (!message || message.status !== 'retrying') return;
-
-                message.status = 'pending';
-                updateMessageStatus(messageId, 'pending');
-                inFlightSends.add(messageId);
-
-                try {
-                    await sendMessageToServer(message);
-                } catch (error) {
-                    handleSendError(messageId, error);
-                }
-            }
+            // Legacy functions removed - now handled by ChatEngine
 
             function updateMessageStatus(messageId, status) {
                 const messageEl = document.querySelector(`[data-message-id="${messageId}"]`);
@@ -1183,13 +1117,24 @@
                     const retryBtn = document.createElement('button');
                     retryBtn.className = 'retry-btn';
                     retryBtn.innerHTML = '↻ Retry';
-                    retryBtn.onclick = () => retryMessage(messageId);
+                    retryBtn.onclick = () => {
+                        // Retry by resending the message through ChatEngine
+                        const messageContent = messageEl.querySelector('p').textContent;
+                        if (currentConversation && messageContent) {
+                            chatEngine.sendMessage(
+                                currentConversation.otherUserId,
+                                currentConversation.courseId,
+                                messageContent
+                            );
+                            messageEl.remove(); // Remove the failed message
+                        }
+                    };
                     messageEl.querySelector('.message-meta').appendChild(retryBtn);
                 }
             }
 
             function handleIncomingMessage(messageData) {
-                // Handle incoming messages from WebSocket
+                // Handle incoming messages (WebSocket removed - using HTTP polling)
                 if (currentConversation && messageData.courseId == currentConversation.courseId) {
                     const li = document.createElement('li');
                     li.className = 'sender';
@@ -1207,26 +1152,35 @@
                 }
             }
 
-            // mark message read
+            // mark message read - using correct API endpoint
             async function markMessageAsRead(messageId) {
                 try {
-                    const res = await fetch(`${API_BASE}/mark-as-read`, {
+                    validateAuth(); // Validate auth before API call
+                    const res = await fetch(`https://mazengad6-001-site1.rtempurl.com/api/Chat/mark-as-read`, {
                         method: 'POST',
                         headers: getHeaders(),
                         body: JSON.stringify({ messageId })
                     });
-                    if (!res.ok) throw new Error('Mark read failed');
+                    if (!res.ok) {
+                        const errorText = await res.text();
+                        throw new Error(`Mark read failed: ${res.status} ${errorText}`);
+                    }
                     return await res.json();
                 } catch (err) {
                     console.error('markAsRead error', err);
+                    throw err;
                 }
             }
 
-            // unread count (optional)
+            // unread count (optional) - using correct API endpoint
             async function getUnreadCount() {
                 try {
-                    const res = await fetch(`${API_BASE}/unread-count`, { headers: getHeaders() });
-                    if (!res.ok) throw new Error('unread count failed');
+                    validateAuth(); // Validate auth before API call
+                    const res = await fetch(`https://mazengad6-001-site1.rtempurl.com/api/Chat/unread-count`, { headers: getHeaders() });
+                    if (!res.ok) {
+                        const errorText = await res.text();
+                        throw new Error(`Unread count failed: ${res.status} ${errorText}`);
+                    }
                     return await res.json();
                 } catch (err) {
                     console.error('unread count error', err);
@@ -1250,15 +1204,11 @@
                 if (e.target.id === 'instructor-modal') hideInstructorModal();
             });
 
-
-
             // Course search in modal
             document.getElementById('course-search').addEventListener('input', (e) => {
                 const query = e.target.value.trim().toLowerCase();
                 filterCourses(query);
             });
-
-            // Note: Role display removed - anyone can chat with anyone
 
             // Instructor selection modal functions
 
@@ -1354,7 +1304,8 @@
 
                     try {
                         // Get existing conversations to find instructor IDs
-                        const convRes = await fetch(`${API_BASE}/conversations`, { headers: getHeaders() });
+                        validateAuth(); // Validate auth before API call
+                        const convRes = await fetch(`https://mazengad6-001-site1.rtempurl.com/api/Chat/conversations`, { headers: getHeaders() });
                         let existingConversations = [];
 
                         if (convRes.ok) {
@@ -1485,70 +1436,134 @@
                     }
                 }
 
-                // Start new conversation using chat engine
+                // Start new conversation - simplified approach
                 try {
-                    showConnectionStatus('🔍 Looking up instructor...', 'info');
+                    showConnectionStatus('🔍 Starting conversation...', 'info');
 
-                    // First, try to get all users to see what's available
-                    let availableUsers = [];
-                    try {
-                        const usersRes = await fetch('https://mazengad6-001-site1.rtempurl.com/api/Admin/GetUsers', {
-                            headers: getHeaders()
-                        });
-                        if (usersRes.ok) {
-                            availableUsers = await usersRes.json();
-                            console.log(`📊 Found ${availableUsers.length} users in system`);
+                    // For new conversations, we need to use the instructor's actual user ID
+                    // The backend expects the receiverId to be the instructor's user ID
+                    let receiverId = null;
+
+                    // Method 1: Extract instructor ID from JWT token (most reliable according to backend)
+                    receiverId = getInstructorIdFromToken(course.id);
+                    if (receiverId) {
+                        console.log(`✅ Found instructor ID from JWT token: ${receiverId}`);
+                    }
+                    // Method 2: Check if we have otherUserId (from existing conversations)
+                    else if (course.otherUserId && String(course.otherUserId).match(/^\d+$/)) {
+                        receiverId = String(course.otherUserId);
+                        console.log(`✅ Using other user ID from existing conversation: ${receiverId}`);
+                    }
+                    // Method 3: Check if we have instructor ID from course data
+                    else if (course.instructorId && String(course.instructorId).match(/^\d+$/)) {
+                        receiverId = String(course.instructorId);
+                        console.log(`✅ Using instructor ID from course data: ${receiverId}`);
+                    }
+                    // Method 4: Get course details to find instructor ID (fallback)
+                    else {
+                        try {
+                            console.log(`🔍 Fetching course details for course ID: ${course.id}`);
+                            const courseRes = await fetch(`https://mazengad6-001-site1.rtempurl.com/api/Course/${course.id}`, {
+                                headers: getHeaders()
+                            });
+
+                            if (courseRes.ok) {
+                                const courseDetails = await courseRes.json();
+                                console.log('📋 Course details response:', courseDetails);
+
+                                // Try different possible instructor ID fields
+                                if (courseDetails.instructorId) {
+                                    receiverId = String(courseDetails.instructorId);
+                                    console.log(`✅ Found instructor ID from courseDetails.instructorId: ${receiverId}`);
+                                } else if (courseDetails.instructor && courseDetails.instructor.id) {
+                                    receiverId = String(courseDetails.instructor.id);
+                                    console.log(`✅ Found instructor ID from courseDetails.instructor.id: ${receiverId}`);
+                                } else if (courseDetails.instructor && courseDetails.instructor.userId) {
+                                    receiverId = String(courseDetails.instructor.userId);
+                                    console.log(`✅ Found instructor ID from courseDetails.instructor.userId: ${receiverId}`);
+                                } else if (courseDetails.createdBy) {
+                                    receiverId = String(courseDetails.createdBy);
+                                    console.log(`✅ Using course creator ID as instructor: ${receiverId}`);
+                                } else {
+                                    console.log('❌ Available course details fields:', Object.keys(courseDetails));
+                                    console.log('❌ No instructor ID found in any expected field');
+                                }
+                            } else {
+                                const errorText = await courseRes.text();
+                                console.log(`❌ Could not fetch course details: ${courseRes.status} ${errorText}`);
+                            }
+                        } catch (error) {
+                            console.log('❌ Error fetching course details:', error.message);
                         }
-                    } catch (error) {
-                        console.log('Could not fetch users list:', error.message);
                     }
 
-                    // Determine receiver ID - prioritize actual IDs over names
-                    let receiverId;
-                    if (course.otherUserId && course.otherUserId.match(/^\d+$/)) {
-                        receiverId = course.otherUserId;
-                        console.log(`✅ Using existing user ID: ${receiverId}`);
-                    } else if (course.instructorId && course.instructorId.match(/^\d+$/)) {
-                        receiverId = course.instructorId;
-                        console.log(`✅ Using instructor ID: ${receiverId}`);
-                    } else if (course.instructorName) {
-                        // Try to find the instructor in the available users
-                        const instructor = availableUsers.find(user => {
-                            const fullName = (user.fullName || '').toLowerCase();
-                            const userName = (user.userName || '').toLowerCase();
-                            const name = (user.name || '').toLowerCase();
-                            const searchName = course.instructorName.toLowerCase();
+                    // If we still don't have a receiverId, try alternative approaches
+                    if (!receiverId) {
+                        console.log('🔍 Trying alternative approaches to find instructor...');
 
-                            return fullName === searchName ||
-                                userName === searchName ||
-                                name === searchName ||
-                                fullName.includes(searchName) ||
-                                searchName.includes(fullName);
-                        });
+                        // Method 4: Try to get instructor from enrollment data
+                        try {
+                            console.log(`🔍 Checking enrollment data for instructor info...`);
+                            const enrollmentRes = await fetch(`https://mazengad6-001-site1.rtempurl.com/api/Enrollment/my-courses`, {
+                                headers: getHeaders()
+                            });
 
-                        if (instructor) {
-                            receiverId = String(instructor.id || instructor.userId);
-                            console.log(`✅ Found instructor in users list: ${instructor.fullName} (ID: ${receiverId})`);
-                            showConnectionStatus(`✅ Found instructor: ${instructor.fullName}`, 'success');
-                        } else {
-                            // Show available instructors to help debug
-                            const instructors = availableUsers.filter(u =>
-                                u.roles && u.roles.includes('Instructor')
-                            );
-                            console.log('Available instructors:', instructors.map(i => ({
-                                id: i.id || i.userId,
-                                name: i.fullName || i.name,
-                                userName: i.userName
-                            })));
+                            if (enrollmentRes.ok) {
+                                const enrollments = await enrollmentRes.json();
+                                console.log('📋 Enrollment data:', enrollments);
+                                const enrollment = enrollments.find(e => e.courseId == course.id);
 
-                            throw new Error(`Instructor "${course.instructorName}" not found. Available instructors: ${instructors.map(i => i.fullName || i.name).join(', ')}`);
+                                if (enrollment) {
+                                    console.log('📋 Found enrollment:', enrollment);
+                                    if (enrollment.instructorId) {
+                                        receiverId = String(enrollment.instructorId);
+                                        console.log(`✅ Found instructor ID from enrollment data: ${receiverId}`);
+                                    } else {
+                                        console.log('❌ No instructor ID in enrollment data');
+                                    }
+                                } else {
+                                    console.log('❌ No enrollment found for this course');
+                                }
+                            }
+                        } catch (error) {
+                            console.log('❌ Error checking enrollment data:', error.message);
                         }
-                    } else {
-                        throw new Error('No instructor information available for this course');
+                    }
+
+                    // Final check - if still no receiverId, show detailed error
+                    if (!receiverId) {
+                        const errorDetails = {
+                            courseId: course.id,
+                            courseTitle: course.title,
+                            instructorName: course.instructorName || 'Not available',
+                            instructorId: course.instructorId || 'Not available',
+                            otherUserId: course.otherUserId || 'Not available'
+                        };
+
+                        console.error('❌ Failed to find instructor ID. Course details:', errorDetails);
+
+                        throw new Error(`Cannot find instructor ID for course "${course.title}". 
+
+Debugging info:
+- Course ID: ${course.id}
+- Instructor Name: ${course.instructorName || 'Not available'}
+- Instructor ID in course data: ${course.instructorId || 'Not available'}
+
+This usually means:
+1. The course doesn't have an assigned instructor
+2. The instructor data is missing from the API response
+3. There may be a permission issue accessing instructor information
+
+Please check the browser console for more details or contact support.`);
                     }
 
                     console.log(`📤 Starting conversation with receiverId: ${receiverId}, courseId: ${course.id}`);
                     showConnectionStatus('📤 Sending message...', 'info');
+
+                    // Validate data before sending
+                    if (!receiverId || !course.id) {
+                        throw new Error('Missing required data: receiverId or courseId');
+                    }
 
                     // Send initial message using chat engine
                     const messageId = await chatEngine.sendMessage(
@@ -1614,94 +1629,7 @@
                 }
             }
 
-            // Function to find instructor ID for a course (for students)
-            async function findInstructorIdForCourse(course) {
-                try {
-                    console.log(`Looking for instructor ID for course: ${course.title}, instructor: ${course.instructorName}`);
-
-                    // Method 1: Check if we can find instructor through admin endpoint (if accessible)
-                    try {
-                        const usersRes = await fetch('https://mazengad6-001-site1.rtempurl.com/api/Admin/GetUsers', {
-                            headers: getHeaders()
-                        });
-
-                        if (usersRes.ok) {
-                            const users = await usersRes.json();
-                            const instructor = users.find(user =>
-                                user.fullName === course.instructorName ||
-                                user.name === course.instructorName ||
-                                user.userName === course.instructorName
-                            );
-
-                            if (instructor) {
-                                course.otherUserId = instructor.id || instructor.userId;
-                                course.otherUserName = instructor.fullName || instructor.name;
-                                console.log(`Found instructor ID via admin endpoint: ${course.otherUserId}`);
-                                return;
-                            }
-                        }
-                    } catch (error) {
-                        console.log('Admin endpoint not accessible (normal for students)');
-                    }
-
-                    // Method 2: Try to find through instructor dashboard (might be accessible)
-                    try {
-                        const instructorRes = await fetch('https://mazengad6-001-site1.rtempurl.com/api/Instructor/dashboard', {
-                            headers: getHeaders()
-                        });
-
-                        if (instructorRes.ok) {
-                            const dashboardData = await instructorRes.json();
-                            console.log('Instructor dashboard data:', dashboardData);
-                            // This might contain instructor user information
-                        }
-                    } catch (error) {
-                        console.log('Instructor dashboard not accessible');
-                    }
-
-                    // Method 3: Create a placeholder conversation that the backend can resolve
-                    // We'll use a special format that tells the backend to look up the instructor
-                    if (course.instructorName) {
-                        course.otherUserId = `instructor:${course.instructorName}:${course.id}`;
-                        course.otherUserName = course.instructorName;
-                        console.log(`Using instructor lookup format: ${course.otherUserId}`);
-                    }
-                } catch (error) {
-                    console.error('Error finding instructor ID:', error);
-                }
-            }
-
-            // Function to resolve instructor name to user ID
-            async function resolveInstructorId(instructorName, courseId) {
-                try {
-                    console.log(`Trying to resolve instructor ID for: ${instructorName}`);
-
-                    // Method 1: Try a direct lookup (you might need to ask backend dev to add this endpoint)
-                    try {
-                        const lookupRes = await fetch(`https://mazengad6-001-site1.rtempurl.com/api/User/lookup?name=${encodeURIComponent(instructorName)}`, {
-                            headers: getHeaders()
-                        });
-
-                        if (lookupRes.ok) {
-                            const userData = await lookupRes.json();
-                            console.log('Found user via lookup:', userData);
-                            return userData.id || userData.userId;
-                        }
-                    } catch (error) {
-                        console.log('User lookup endpoint not available');
-                    }
-
-                    // Method 2: For now, return the instructor name and let backend handle it
-                    // Ask your backend developer to modify the send-message endpoint to accept instructor names
-                    // and resolve them to user IDs on the server side
-                    console.log('Using instructor name, backend should resolve:', instructorName);
-                    return instructorName;
-
-                } catch (error) {
-                    console.error('Error resolving instructor ID:', error);
-                    return instructorName; // Fallback to name
-                }
-            }
+            // Legacy instructor resolution functions removed - now using JWT token approach
 
             // Initialize the application
             loadConversations().then(() => {
@@ -1715,8 +1643,6 @@
 
         })();
     </script>
-
-
 
 </body>
 
